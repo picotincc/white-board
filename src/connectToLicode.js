@@ -18,7 +18,7 @@ const connectToLicode = (Component, username) => {
 
     componentDidMount() {
       const localStream = Erizo.Stream({
-        audio: true,
+        audio: false,
         video: true,
         data: true,
         attributes: {
