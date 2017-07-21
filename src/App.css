@@ -1,0 +1,48 @@
+.App {
+  text-align: center;
+  padding: 20px;
+}
+
+.roomListContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.roomListContainer > .ant-table-wrapper {
+  margin-top: 5px;
+  width: 80%;
+}
+
+.roomListContainer > .ant-btn {
+  margin-top: 10px;
+}
+
+.videoPanel {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.ant-card {
+  flex-shrink: 0;
+  margin: 20px;
+}
+
+.licode_loader {
+  display: none;
+}
+
+.licode_bar {
+  display: none;
+  opacity: 0;
+}
+
+.resize-sensor {
+  display: none;
+}
+
+.user-paper {
+  background-color: rgb(236, 236, 236);
+}
