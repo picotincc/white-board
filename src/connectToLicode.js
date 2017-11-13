@@ -2,7 +2,7 @@ import React from 'react'
 import axios from 'axios'
 import { fromJS, List, Map } from 'immutable'
 
-const serverUrl = 'http://192.168.1.106:6001'
+const serverUrl = 'https://www.menkor.cn:666'
 const Erizo = window.Erizo
 
 const connectToLicode = (Component, username) => {

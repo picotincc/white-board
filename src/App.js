@@ -5,6 +5,12 @@ import './App.css'
 import './erizo'
 import SketchPad from './SketchPad'
 
+if (!String.prototype.startsWith) {
+    String.prototype.startsWith = function(searchString, position){
+      return this.substr(position || 0, searchString.length) === searchString;
+  };
+}
+
 class App extends React.Component {
   state = {
     route: '/roomList',
@@ -54,7 +60,7 @@ class App extends React.Component {
   }
 
   renderAttender(stream, receiveData = true) {
-    if (!stream) return null
+    if (!stream || !stream.getAttributes()) return null
     const {
       username,
     } = stream.getAttributes()

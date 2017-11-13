@@ -1,13 +1,12 @@
-FROM ubuntu:14.04
+FROM node:latest
 
-RUN apt-get update && apt-get install -y git wget curl
+WORKDIR /usr/src/app
 
-WORKDIR /opt
-git clone --depth=1 https://github.com/ging/licode.git
+COPY . .
 
-WORKDIR /opt/licode/scripts
-RUN ./installUbuntuDeps.sh --cleanup --fase
-RUN ./installErizo.sh
-RUN ./installNuve.sh
+RUN npm install
+RUN npm run build
 
-ENTRYPOINT ["./initLicode.sh"]
+EXPOSE 3002
+
+CMD [ "npm", "start"]
