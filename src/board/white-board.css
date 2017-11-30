@@ -1,0 +1,14 @@
+.white-board {
+  width: 986px;
+  height: 616px;
+  background: #ffffff;
+
+}
+
+.editor-bar {
+  width: 985px;
+  height: 54px;
+  background-color: #ffffff;
+  box-shadow: -3px 0 13px 0 rgba(0, 0, 0, 0.08);
+  padding: 0 60px;
+}

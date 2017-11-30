@@ -1,0 +1,41 @@
+.editor-btn {
+  width: 54px;
+  height: 100%;
+
+  border: 1px solid #ccc;
+
+  display: flex;
+  flex-direction: column;
+
+  justify-content: center;
+  align-items: center;
+}
+
+.editor-btn > .icon-container {
+  width: 21px;
+  height: 21px;
+  position: relative;
+}
+
+.icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+.triangle {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 2px solid transparent;
+  border-right: 2px solid transparent;
+  border-top: 4px solid #9b9b9b;
+  right: 0;
+  bottom: 0;
+}
+
+.editor-btn > .icon-text {
+  font-size: 12px;
+	font-weight: 300;
+	color: #9b9b9b;
+}

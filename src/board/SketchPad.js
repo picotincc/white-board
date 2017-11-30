@@ -1,7 +1,7 @@
 import React, {Component, } from 'react'
 import PropTypes from 'prop-types'
 import { findDOMNode } from 'react-dom'
-import { Pencil, TOOL_PENCIL, Line, TOOL_LINE, Ellipse, TOOL_ELLIPSE, Rectangle, TOOL_RECTANGLE } from './tools'
+import { Pencil, TOOL_PENCIL, Line, TOOL_LINE, Ellipse, TOOL_ELLIPSE, Rectangle, TOOL_RECTANGLE } from '../tools'
 
 export const toolsMap = {
   [TOOL_PENCIL]: Pencil,
@@ -16,8 +16,6 @@ export default class SketchPad extends Component {
   interval = null
 
   static propTypes = {
-    enable: PropTypes.bool.isRequired,
-    items: PropTypes.array.isRequired,
     width: PropTypes.number,
     height: PropTypes.number,
     animate: PropTypes.bool,
@@ -80,7 +78,6 @@ export default class SketchPad extends Component {
   }
 
   onMouseDown(e) {
-    if (!this.props.enable) return
 
     const data = this.tool.onMouseDown(...this.getCursorPosition(e), this.props.color, this.props.size, this.props.fillColor)
 
@@ -91,7 +88,6 @@ export default class SketchPad extends Component {
   }
 
   onDebouncedMove() {
-    if (!this.props.enable) return
 
     if (typeof this.tool.onDebouncedMouseMove === 'function' && this.props.onDebouncedItemChange) {
       this.props.onDebouncedItemChange.apply(null, this.tool.onDebouncedMouseMove())
@@ -99,14 +95,12 @@ export default class SketchPad extends Component {
   }
 
   onMouseMove(e) {
-    if (!this.props.enable) return
 
     const data = this.tool.onMouseMove(...this.getCursorPosition(e));
     data && data[0] && this.props.onEveryItemChange && this.props.onEveryItemChange.apply(null, data);
   }
 
   onMouseUp(e) {
-    if (!this.props.enable) return
 
     const data = this.tool.onMouseUp(...this.getCursorPosition(e));
     data && data[0] && this.props.onCompleteItem && this.props.onCompleteItem.apply(null, data);
@@ -126,19 +120,21 @@ export default class SketchPad extends Component {
   }
 
   render() {
-    const {width, height, canvasClassName} = this.props
+    const { width, height, canvasClassName } = this.props
 
     return (
-      <canvas
-        ref={(canvas) => { this.canvasRef = canvas }}
-        className={canvasClassName}
-        onMouseDown={this.onMouseDown}
-        onMouseMove={this.onMouseMove}
-        onMouseOut={this.onMouseUp}
-        onMouseUp={this.onMouseUp}
-        width={width}
-        height={height}
-      />
+        <div className="sketch-pad">
+            <canvas
+                ref={(canvas) => { this.canvasRef = canvas }}
+                className={canvasClassName}
+                onMouseDown={this.onMouseDown}
+                onMouseMove={this.onMouseMove}
+                onMouseOut={this.onMouseUp}
+                onMouseUp={this.onMouseUp}
+                width={width}
+                height={height}
+            />
+        </div>
     )
   }
 }

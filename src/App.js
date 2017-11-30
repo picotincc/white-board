@@ -5,11 +5,11 @@ import './App.css'
 import './erizo'
 import SketchPad from './SketchPad'
 
-if (!String.prototype.startsWith) {
-    String.prototype.startsWith = function(searchString, position){
-      return this.substr(position || 0, searchString.length) === searchString;
-  };
-}
+// if (!String.prototype.startsWith) {
+//     String.prototype.startsWith = function(searchString, position){
+//       return this.substr(position || 0, searchString.length) === searchString;
+//   };
+// }
 
 class App extends React.Component {
   state = {
@@ -66,6 +66,7 @@ class App extends React.Component {
     } = stream.getAttributes()
 
     const elementID = `stream-id-${username}`
+    console.log('render stream', stream)
 
     return (
       <Card key={elementID} style={{ width: 150 }} bodyStyle={{ padding: 0 }}>
@@ -92,6 +93,7 @@ class App extends React.Component {
             canvasClassName="user-paper"
             onCompleteItem={(i) => this.props.onSendData(i)}
           />
+          <div>撤回</div>
         </div>
       </Card>
     )

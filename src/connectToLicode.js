@@ -1,11 +1,13 @@
 import React from 'react'
 import axios from 'axios'
 import { fromJS, List, Map } from 'immutable'
+import './erizo'
 
 const serverUrl = 'https://www.menkor.cn:666'
 const Erizo = window.Erizo
 
 const connectToLicode = (Component, username) => {
+
   class LicodeConnection extends Component {
     state = {
       roomList: List(),
@@ -14,6 +16,7 @@ const connectToLicode = (Component, username) => {
       streams: List(), // Current remote streams.
       room: null, // Current room.
       dataMap: Map(),
+      isInit: true
     }
 
     componentDidMount() {
@@ -87,13 +90,16 @@ const connectToLicode = (Component, username) => {
             room.addEventListener('stream-subscribed', streamEvent => {
               const stream = streamEvent.stream
               stream.addEventListener('stream-data', evt => {
-                this.setState({
-                  dataMap: this.state.dataMap.update(
-                    stream.getID(),
-                    data => data.update('sketchPadItems', items => !items ? List([evt.msg]) : items.push(evt.msg)),
-                  )
-                })
+
+                  this.setState({
+                    dataMap: this.state.dataMap.update(
+                      stream.getID(),
+                      data => data.update('sketchPadItems', items => !items ? List([evt.msg]) : items.push(evt.msg)),
+                    )
+                  })
               })
+
+
               this.setState({
                 dataMap: this.state.dataMap.set(stream.getID(), Map())
               })
