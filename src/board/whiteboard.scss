@@ -1,0 +1,131 @@
+:local(.whiteBoard) {
+  width: 986px;
+  height: 616px;
+  background: #ffffff;
+
+  :local(.editorBar) {
+    width: 985px;
+    height: 54px;
+    background-color: #ffffff;
+    box-shadow: -3px 0 13px 0 rgba(0, 0, 0, 0.08);
+    padding: 0 60px;
+
+    display: flex;
+
+    :local(.left) {
+      margin-right: 80px;
+      display: flex;
+    }
+
+    :local(.middle) {
+      margin-right: 150px;
+      display: flex;
+    }
+
+  }
+}
+
+:local(.customMenu) {
+  :local(.menuItem) {
+    display: flex;
+    width: 56px;
+
+    :local(.itemIcon) {
+      width: 18px;
+      height: 18px;
+
+      svg {
+        fill: #d9d9d9;
+      }
+    }
+
+    :local(.itemText) {
+      margin-left: 8px;
+      color: #a5a5a5;
+    }
+  }
+
+  .ant-dropdown-menu-item:hover {
+    background-color: #f5f5f5;
+
+    :local(.itemIcon) {
+
+      svg {
+        fill: #9b9b9b;
+      }
+    }
+
+    :local(.itemText) {
+      color: #666666;
+    }
+  }
+}
+
+:local(.colorMenu) {
+  width: 223px;
+	height: 32px;
+	border-radius: 4px;
+	background-color: #ffffff;
+	box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.2);
+
+  :local(.colorOl) {
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    :local(.colorLi) {
+      cursor: pointer;
+      width: 16px;
+    	height: 16px;
+      margin-left: 4px;
+      margin-right: 4px;
+      border-radius: 9px;
+      text-align: center;
+
+      > svg {
+        width: 10px;
+        height: 10px;
+      }
+
+      &:last-child {
+        border: solid 0.5px #979797;
+      }
+    }
+  }
+}
+
+:local(.scaleMenu) {
+  width: 197px;
+  height: 32px;
+  border-radius: 4px;
+  background-color: #ffffff;
+  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 12px;
+
+  :local(.text) {
+    color: #a5a5a5;
+    transform: scale(0.85);
+  }
+
+  :local(.sliderContainer) {
+    flex: 1 0 auto;
+
+    .ant-slider-track {
+      background-color: #d8c8ff;
+    }
+
+    .ant-slider-handle {
+      margin-left: -5px;
+      margin-top: -3px;
+      width: 9px;
+      height: 9px;
+      border: solid 2px #d8c8ff;
+    }
+  }
+}

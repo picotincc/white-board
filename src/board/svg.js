@@ -1,5 +1,19 @@
 import React from 'react'
 
+export const AuthenticatedIcon = (props) => (
+  <svg x="0px" y="0px" viewBox="0 0 24 24" style={{enableBackground: 'new 0 0 24 24'}} {...props}>
+    <g>
+      <g transform="translate(-752.000000, -239.000000)">
+        <g transform="translate(563.000000, 200.000000)">
+          <g transform="translate(0.000000, 28.000000)">
+            <polygon points="198.7,32 190,24.6 192.7,21.4 198.3,26.2 208.9,14 212,16.7 				"/>
+          </g>
+        </g>
+      </g>
+    </g>
+  </svg>
+)
+
 export const AmplificationIcon = (props) => (
   <svg x="0px" y="0px" viewBox="0 0 64 64" style={{enableBackground:'new 0 0 64 64'}} {...props}>
   <path  d="M49.6,52.2c-0.4,0-0.7-0.2-1-0.5l-9.9-9.9c-3,2.5-6.9,3.9-10.9,3.9c-9.4,0-17-7.6-17-17c0-9.4,7.6-17,17-17

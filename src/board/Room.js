@@ -1,14 +1,8 @@
 import React from 'react'
-import './room.css'
+import styles from './room.scss'
 import WhiteBoard from './WhiteBoard'
-import SketchPad from './SketchPad'
-import { Button } from 'antd'
 
 class Room extends React.Component {
-
-    constructor(props) {
-        super(props);
-    }
 
     state = {
         role: 'presenter',
@@ -16,8 +10,7 @@ class Room extends React.Component {
     }
 
     componentDidMount() {
-        const { role } = this.state
-        const { roomId } = this.props
+
     }
 
     renderAttender(stream) {
@@ -36,7 +29,7 @@ class Room extends React.Component {
                 }
               }}
               id={elementID}
-              className="custom-image"
+              className={styles.customImage}
             >
             </div>
         )
@@ -58,22 +51,22 @@ class Room extends React.Component {
         const { username, roomId } = this.props
 
         return (
-            <div className="room">
-                <div className="title">
+            <div className={styles.room}>
+                <div className={styles.title}>
                     房间ID: {roomId}
                 </div>
-                <div className="username">
+                <div className={styles.username}>
                     用户名：{username}
                 </div>
-                <div className="panel-title">白板区</div>
-                <div className="sketch-pad-container">
+                <div className={styles.panelTitle}>白板区</div>
+                <div className={styles.sketchPadContainer}>
                   <WhiteBoard
                     items={this.concatDataMap(this.props.dataMap)}
                     onCompleteItem={(i) => this.props.onSendData(i)}
                   />
                 </div>
-                <div className="panel-title">视频区</div>
-                <div className="video-list">
+                <div className={styles.panelTitle}>视频区</div>
+                <div className={styles.videoList}>
                     {this.renderAttender(this.props.localStream)}
                     {this.props.streams.map(stream => this.renderAttender(stream))}
                 </div>

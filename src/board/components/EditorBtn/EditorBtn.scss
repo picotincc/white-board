@@ -1,0 +1,53 @@
+:local(.editorBtn) {
+  width: 54px;
+  height: 100%;
+  cursor: pointer;
+
+  display: flex;
+  flex-direction: column;
+
+  justify-content: center;
+  align-items: center;
+
+  svg {
+    fill: #926dea;
+  }
+
+  &:hover {
+    background-color: #fafafa
+  }
+
+  &.selected {
+    background-color: #fafafa;
+  }
+
+  :local(.iconContainer) {
+    width: 25px;
+    height: 25px;
+    position: relative;
+
+    :local(.icon) {
+      display: block;
+      width: 24px;
+      height: 24px;
+
+    }
+
+    :local(.triangle) {
+      position: absolute;
+      width: 0;
+      height: 0;
+      border-left: 2px solid transparent;
+      border-right: 2px solid transparent;
+      border-top: 4px solid #9b9b9b;
+      right: 0;
+      bottom: 0;
+    }
+  }
+
+  :local(.iconText) {
+    font-size: 12px;
+  	font-weight: 300;
+  	color: #9b9b9b;
+  }
+}

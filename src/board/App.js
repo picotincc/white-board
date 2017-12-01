@@ -3,7 +3,7 @@ import axios from 'axios'
 import { Table, Button } from 'antd'
 import { List, fromJS } from 'immutable'
 
-import '../App.css'
+import styles from './App.scss'
 import Room from './Room'
 import connectToLicode from './connectToLicode'
 import randomWords from 'random-words'
@@ -71,7 +71,7 @@ class App extends React.Component {
     }]
 
     return (
-      <div className="roomListContainer">
+      <div className={styles.roomListContainer}>
         <h2>Room List</h2>
         <Table
           rowKey="_id"
@@ -96,7 +96,7 @@ class App extends React.Component {
     const { selectedRoom, username } = this.state;
     const RoomWithLicode = connectToLicode(Room, username);
     return (
-      <div className="roomPanel">
+      <div className={styles.roomPanel}>
         <RoomWithLicode roomId={selectedRoom}/>
       </div>
     )
@@ -117,7 +117,7 @@ class App extends React.Component {
     }
 
     return (
-      <div className="App">
+      <div className={styles.App}>
         {content}
       </div>
     )

@@ -62,7 +62,6 @@ export default class SketchPad extends Component {
   }
 
   componentWillReceiveProps({tool, items}) {
-    console.log(items);
     items
       .filter(item => this.props.items.indexOf(item) === -1)
       .forEach(item => {
