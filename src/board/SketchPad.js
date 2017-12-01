@@ -77,13 +77,32 @@ export default class SketchPad extends Component {
   }
 
   onMouseDown(e) {
+    const { operation } = this.props
 
-    const data = this.tool.onMouseDown(...this.getCursorPosition(e), this.props.color, this.props.size, this.props.fillColor)
+    switch (operation) {
+      case 'line':
+        const data = this.tool.onMouseDown(...this.getCursorPosition(e), this.props.color, this.props.size, this.props.fillColor)
 
-    data && data[0] && this.props.onItemStart && this.props.onItemStart.apply(null, data)
-    if (this.props.onDebouncedItemChange) {
-      this.interval = window.setInterval(this.onDebouncedMove, this.props.debounceTime)
+        data && data[0] && this.props.onItemStart && this.props.onItemStart.apply(null, data)
+        if (this.props.onDebouncedItemChange) {
+          this.interval = window.setInterval(this.onDebouncedMove, this.props.debounceTime)
+        }
+        break;
+      case 'clean':
+        const cleanData = this.tool.onMouseDown(...this.getCursorPosition(e), '#ffffff', this.props.size, this.props.fillColor)
+
+        cleanData && cleanData[0] && this.props.onItemStart && this.props.onItemStart.apply(null, cleanData)
+        if (this.props.onDebouncedItemChange) {
+          this.interval = window.setInterval(this.onDebouncedMove, this.props.debounceTime)
+        }
+        break;
+      case 'text':
+        this.setState({ isTexting: true })
+        break;
+      default:
+        break;
     }
+
   }
 
   onDebouncedMove() {

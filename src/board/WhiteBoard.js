@@ -24,6 +24,9 @@ class WhiteBoard extends React.Component {
     color: 'blue',
     colorVisible: false,
     scale: 100,
+    isCleaning: false,
+    isCleanAll: true,
+    operation: 'draw',
   }
 
   componentDidMount() {
@@ -54,14 +57,14 @@ class WhiteBoard extends React.Component {
     return (
       <Menu className={styles.customMenu}>
         <Menu.Item>
-          <div className={styles.menuItem}>
+          <div className={styles.menuItem} onClick={() => this.setState({ isCleaning: true })}>
             <span className={styles.itemIcon}><RubberIcon /></span>
             <span className={styles.itemText}>擦改</span>
           </div>
         </Menu.Item>
 
         <Menu.Item>
-          <div className={styles.menuItem}>
+          <div className={styles.menuItem} onClick={() => this.setState({ isCleanAll: true })}>
             <span className={styles.itemIcon}><ClearIcon /></span>
             <span className={styles.itemText}>清空</span>
           </div>
@@ -81,7 +84,7 @@ class WhiteBoard extends React.Component {
                 key={i}
                 className={styles.colorLi}
                 style={{backgroundColor: c.color}}
-                onClick={() => this.setState({ color: c.name, colorVisible: true })}
+                onClick={() => this.setState({ color: c.name, colorVisible: true, isCleaning: false })}
               >
                 {color === c.name ? <AuthenticatedIcon fill={c.color === '#ffffff' ? '#979797' : '#ffffff'}/> : null}
               </li>
@@ -114,7 +117,12 @@ class WhiteBoard extends React.Component {
 
   render() {
     const { items, onCompleteItem } = this.props
-    const { colorVisible } = this.state;
+    const {
+      color,
+      colorVisible,
+      isCleaning,
+      operation
+    } = this.state
 
     return (
       <div className={styles.whiteBoard}>
@@ -166,6 +174,8 @@ class WhiteBoard extends React.Component {
           items={items}
           width={986}
           height={562}
+          color={isCleaning ? '#ffffff' : colorsMenu.find(c => c.name === color).color}
+          operationType={operation}
           canvasClassName="user-paper"
           onCompleteItem={onCompleteItem}
         />
