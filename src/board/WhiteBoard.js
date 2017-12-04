@@ -25,7 +25,6 @@ class WhiteBoard extends React.Component {
     color: 'blue',
     colorVisible: false,
     scale: 100,
-    isCleanAll: true,
     operation: OPERATION_TYPE.DRAW_LINE,
   }
 
@@ -69,7 +68,7 @@ class WhiteBoard extends React.Component {
         </Menu.Item>
 
         <Menu.Item>
-          <div className={styles.menuItem} onClick={() => this.setState({ isCleanAll: true })}>
+          <div className={styles.menuItem} onClick={() => this.props.onCleanAll()}>
             <span className={styles.itemIcon}><ClearIcon /></span>
             <span className={styles.itemText}>清空</span>
           </div>
@@ -157,7 +156,7 @@ class WhiteBoard extends React.Component {
               <div><EditorBtn type="rubber" text="清除" arrow /></div>
             </Dropdown>
 
-            <EditorBtn type="import" text="插入" />
+            <EditorBtn type="import" text="插入" onClick={() => this.setState({ operation: OPERATION_TYPE.INSERT_PIC })} />
           </div>
           <div className={styles.middle}>
             <EditorBtn type="undo" text="撤销" onClick={this.handleUndo.bind(this)}/>

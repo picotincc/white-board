@@ -104,7 +104,6 @@ export default class SketchPad extends Component {
   onMouseDown(e) {
     const { operation } = this.props
 
-    console.log('on mouse down', operation)
     switch (operation) {
       case OPERATION_TYPE.DRAW_LINE:
         this.onDrawlineMouseDown(e)
@@ -114,6 +113,9 @@ export default class SketchPad extends Component {
         break
       case OPERATION_TYPE.TEXT:
         this.onAddTextArea(e)
+        break
+      case OPERATION_TYPE.INSERT_PIC:
+        this.onInsertPic(e)
         break
       default:
         break
@@ -143,8 +145,6 @@ export default class SketchPad extends Component {
         break
       case OPERATION_TYPE.CLEAR:
         this.onCleanMouseUp(e)
-        break
-      case OPERATION_TYPE.TEXT:
         break
       default:
         break
@@ -256,6 +256,17 @@ export default class SketchPad extends Component {
   }
 
 
+  onInsertPic(e) {
+    console.log(this.props.operation)
+    const fileInput = this.fileInput
+    fileInput.click()
+  }
+
+  onFileChange(e) {
+    console.log(e.target.value)
+  }
+
+
 
 
 
@@ -324,6 +335,13 @@ export default class SketchPad extends Component {
               onMouseDown={this.dragTextArea.bind(this)}
               onKeyDown={this.onTextAreaKeyPress.bind(this)}
             ></textarea>
+            <input
+              type="file"
+              style={{ display: 'none' }}
+              accept="image/*"
+              ref={(input) => this.fileInput = input }
+              onChange={this.onFileChange.bind(this)}
+            />
         </div>
     )
   }

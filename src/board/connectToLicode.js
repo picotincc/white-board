@@ -155,6 +155,12 @@ const connectToLicode = (Component, username) => {
                   )
               })
               break
+            case OPERATION_TYPE.CLEAR_ALL:
+              this.setState({
+                remoteType: REMOTE_OPERATION.DECREMENT,
+                dataMap: Map()
+              })
+              break
             default:
               break
           }
@@ -202,6 +208,22 @@ const connectToLicode = (Component, username) => {
           })
         }
 
+        handleCleanAll() {
+          const { localStream } = this.state
+          const uid = localStream.getID()
+          const message = {
+            id: v4(),
+            uid: uid,
+            op: OPERATION_TYPE.CLEAR_ALL,
+            timestamp: Date.now()
+          }
+          localStream.sendData(message)
+           this.setState({
+               remoteType: REMOTE_OPERATION.DECREMENT,
+               dataMap: Map()
+           })
+        }
+
         handleCreateRoom(role) {
             const data = {
                 username: username,
@@ -223,6 +245,7 @@ const connectToLicode = (Component, username) => {
                     streams={this.state.streams}
                     username={username}
                     undo={this.handleUndo.bind(this)}
+                    cleanAll={this.handleCleanAll.bind(this)}
                 />
             )
         }
