@@ -5,6 +5,7 @@ import styles from './whiteboard.scss'
 import SketchPad from './SketchPad'
 import EditorBtn from './components/EditorBtn/EditorBtn'
 import { PenIcon, RubberIcon, ClearIcon, AuthenticatedIcon } from './svg'
+import { OPERATION_TYPE } from './ConstantUtil'
 
 const colorsMenu = [
   { name: 'black', color: '#4a4a4a' },
@@ -24,13 +25,17 @@ class WhiteBoard extends React.Component {
     color: 'blue',
     colorVisible: false,
     scale: 100,
-    isCleaning: false,
     isCleanAll: true,
-    operation: 'draw',
+    operation: OPERATION_TYPE.DRAW_LINE,
   }
 
   componentDidMount() {
 
+  }
+
+  handleUndo() {
+    console.log('undo')
+    this.props.undo({ op: OPERATION_TYPE.UNDO })
   }
 
   renderStrokeMenu() {
@@ -57,7 +62,7 @@ class WhiteBoard extends React.Component {
     return (
       <Menu className={styles.customMenu}>
         <Menu.Item>
-          <div className={styles.menuItem} onClick={() => this.setState({ isCleaning: true })}>
+          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.CLEAR })}>
             <span className={styles.itemIcon}><RubberIcon /></span>
             <span className={styles.itemText}>擦改</span>
           </div>
@@ -84,7 +89,7 @@ class WhiteBoard extends React.Component {
                 key={i}
                 className={styles.colorLi}
                 style={{backgroundColor: c.color}}
-                onClick={() => this.setState({ color: c.name, colorVisible: true, isCleaning: false })}
+                onClick={() => this.setState({ color: c.name, colorVisible: true, operation: OPERATION_TYPE.DRAW_LINE })}
               >
                 {color === c.name ? <AuthenticatedIcon fill={c.color === '#ffffff' ? '#979797' : '#ffffff'}/> : null}
               </li>
@@ -116,11 +121,10 @@ class WhiteBoard extends React.Component {
   }
 
   render() {
-    const { items, onCompleteItem } = this.props
+    const { items, onCompleteItem, remoteType } = this.props
     const {
       color,
       colorVisible,
-      isCleaning,
       operation
     } = this.state
 
@@ -147,7 +151,7 @@ class WhiteBoard extends React.Component {
             </Dropdown>
 
 
-            <EditorBtn type="text" text="文本" />
+            <EditorBtn type="text" text="文本" onClick={() => this.setState({ operation: OPERATION_TYPE.TEXT })} />
 
             <Dropdown overlay={this.renderClearMenu()} placement="bottomCenter" trigger={['hover']}>
               <div><EditorBtn type="rubber" text="清除" arrow /></div>
@@ -156,7 +160,7 @@ class WhiteBoard extends React.Component {
             <EditorBtn type="import" text="插入" />
           </div>
           <div className={styles.middle}>
-            <EditorBtn type="undo" text="撤销" />
+            <EditorBtn type="undo" text="撤销" onClick={this.handleUndo.bind(this)}/>
             <EditorBtn type="redo" text="重做" />
 
             <Dropdown overlay={this.renderScaleMenu()} placement="bottomCenter" trigger={['hover']}>
@@ -171,11 +175,13 @@ class WhiteBoard extends React.Component {
 
         </div>
         <SketchPad
+          ref={(sketchPad) => this.sketchPad = sketchPad}
           items={items}
           width={986}
           height={562}
-          color={isCleaning ? '#ffffff' : colorsMenu.find(c => c.name === color).color}
-          operationType={operation}
+          remoteType={remoteType}
+          color={colorsMenu.find(c => c.name === color).color}
+          operation={operation}
           canvasClassName="user-paper"
           onCompleteItem={onCompleteItem}
         />

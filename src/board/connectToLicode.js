@@ -1,7 +1,10 @@
 import React from 'react'
 import axios from 'axios'
+import { v4 } from 'uuid'
 import { fromJS, List, Map } from 'immutable'
 import '../erizo'
+import { REMOTE_OPERATION, OPERATION_TYPE } from './ConstantUtil'
+
 
 const serverUrl = 'https://www.menkor.cn:666'
 const Erizo = window.Erizo
@@ -18,7 +21,8 @@ const connectToLicode = (Component, username) => {
             localStream: null,
             streams: List(), // Current remote streams.
             room: null, // Current room.
-            dataMap: Map()
+            dataMap: Map(),
+            remoteType: REMOTE_OPERATION.INCREMENT,
         }
 
         componentDidMount() {
@@ -63,13 +67,8 @@ const connectToLicode = (Component, username) => {
                         room.addEventListener('stream-subscribed', streamEvent => {
                             const stream = streamEvent.stream
                             stream.addEventListener('stream-data', evt => {
-
-                                this.setState({
-                                    dataMap: this.state.dataMap.update(
-                                        stream.getID(),
-                                        data => data.update('sketchPadItems', items => !items ? List([evt.msg]) : items.push(evt.msg)),
-                                    )
-                                })
+                                const msg = evt.msg
+                                this.handleReveiveMessage(stream, msg)
                             })
 
 
@@ -114,32 +113,84 @@ const connectToLicode = (Component, username) => {
             })
         }
 
-        handleSendData(data) {
+        // 接受消息
+        handleReveiveMessage(stream, msg) {
+          const { dataMap } = this.state
+
+          console.log('receive message', msg)
+          switch (msg.op) {
+            case OPERATION_TYPE.DRAW_LINE:
+              this.setState({
+                  remoteType: REMOTE_OPERATION.INCREMENT,
+                  dataMap: dataMap.update(
+                      stream.getID(),
+                      data => data.update('sketchPadItems', items => !items ? List([msg]) : items.push(msg)),
+                  )
+              })
+              break
+            case OPERATION_TYPE.TEXT:
+              this.setState({
+                  remoteType: REMOTE_OPERATION.INCREMENT,
+                  dataMap: dataMap.update(
+                      stream.getID(),
+                      data => data.update('sketchPadItems', items => !items ? List([msg]) : items.push(msg)),
+                  )
+              })
+              break
+            case OPERATION_TYPE.UNDO:
+              this.setState({
+                  remoteType: REMOTE_OPERATION.DECREMENT,
+                  dataMap: dataMap.update(
+                      stream.getID(),
+                      data => data.update('sketchPadItems', items => !items ? List([]) : items.pop()),
+                  )
+              })
+              break
+            default:
+              break
+          }
+        }
+
+        // 发送消息
+        handleSendMessage(msg) {
             // stream 是否有准备好
-            const { localStream } = this.state
-            localStream.sendData(data)
-            const id = localStream.getID()
+            const { localStream, dataMap } = this.state
+            const uid = localStream.getID()
+            const message = Object.assign({}, msg, {
+              id: v4(),
+              uid: uid,
+              timestamp: Date.now()
+            })
+            localStream.sendData(message)
             this.setState({
-                dataMap: this.state.dataMap.update(id, stream => {
+                remoteType: REMOTE_OPERATION.INCREMENT,
+                dataMap: dataMap.update(uid, stream => {
                     if (stream) {
-                        return stream.update('sketchPadItems', items => !items ? List([data]) : items.push(data))
+                        return stream.update('sketchPadItems', items => !items ? List([message]) : items.push(message))
                     }
-                    return Map({ sketchPadItems: List([data]) })
+                    return Map({ sketchPadItems: List([message]) })
                 })
             })
         }
 
-        handleUndo() {
-            const { localStream } = this.state
-            const id = localStream.getID()
-            this.setState({
-                dataMap: this.state.dataMap.update(id, stream => {
-                    if (stream) {
-                        return stream.update('sketchPadItems', items => !items ? List([]) : items.pop())
-                    }
-                    return Map({ sketchPadItems: List([]) })
-                })
-            })
+       handleUndo(msg) {
+         const { localStream, dataMap } = this.state
+         const uid = localStream.getID()
+         const message = Object.assign({}, msg, {
+           id: v4(),
+           uid: uid,
+           timestamp: Date.now()
+         })
+         localStream.sendData(message)
+          this.setState({
+              remoteType: REMOTE_OPERATION.DECREMENT,
+              dataMap: dataMap.update(uid, stream => {
+                  if (stream) {
+                      return stream.update('sketchPadItems', items => !items ? List([]) : items.pop())
+                  }
+                  return Map({ sketchPadItems: List([]) })
+              })
+          })
         }
 
         handleCreateRoom(role) {
@@ -157,7 +208,7 @@ const connectToLicode = (Component, username) => {
                 <Component
                     {...this.props}
                     {...this.state}
-                    onSendData={this.handleSendData.bind(this)}
+                    onSendData={this.handleSendMessage.bind(this)}
                     dataMap={this.state.dataMap}
                     room={this.state.room}
                     streams={this.state.streams}

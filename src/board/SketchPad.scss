@@ -1,0 +1,17 @@
+:local(.sketchPad) {
+  position: relative;
+
+  :local(.canvasTextArea)
+  {
+    position: absolute;
+    display: none;
+    width: 200px;
+    height: 100px;
+  }
+
+  :local(.textareaShow) {
+
+  }
+
+
+}

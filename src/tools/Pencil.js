@@ -8,7 +8,7 @@ export default (context) => {
 
   const onMouseDown = (x, y, color, size) => {
     stroke = {
-      id: v4(),
+      // id: v4(),
       tool: TOOL_PENCIL,
       color,
       size,

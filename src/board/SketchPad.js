@@ -1,7 +1,11 @@
 import React, {Component, } from 'react'
+import { v4 } from 'uuid'
 import PropTypes from 'prop-types'
 import { findDOMNode } from 'react-dom'
+import classNames from 'classnames'
 import { Pencil, TOOL_PENCIL, Line, TOOL_LINE, Ellipse, TOOL_ELLIPSE, Rectangle, TOOL_RECTANGLE } from '../tools'
+import { REMOTE_OPERATION, OPERATION_TYPE } from './ConstantUtil'
+import styles from './SketchPad.scss'
 
 export const toolsMap = {
   [TOOL_PENCIL]: Pencil,
@@ -45,6 +49,10 @@ export default class SketchPad extends Component {
     toolsMap
   };
 
+  state = {
+    isTexting: false
+  }
+
   constructor(props) {
     super(props)
     this.initTool = this.initTool.bind(this)
@@ -61,14 +69,19 @@ export default class SketchPad extends Component {
     this.initTool(this.props.tool)
   }
 
-  componentWillReceiveProps({tool, items}) {
-    items
-      .filter(item => this.props.items.indexOf(item) === -1)
-      .forEach(item => {
-        this.initTool(item.tool)
-        this.tool.draw(item, this.props.animate)
-      })
-
+  componentWillReceiveProps({tool, items, remoteType}) {
+    switch (remoteType) {
+      case REMOTE_OPERATION.INCREMENT:
+        const newItems = items.filter(item => this.props.items.indexOf(item) === -1)
+        this.drawItems(newItems, true)
+        break
+      case REMOTE_OPERATION.DECREMENT:
+        this._clear()
+        this.drawItems(items)
+        break
+      default:
+        break
+    }
     this.initTool(tool)
   }
 
@@ -76,31 +89,34 @@ export default class SketchPad extends Component {
     this.tool = this.props.toolsMap[tool](this.ctx)
   }
 
+
+
+
+
+
+
+
+
+
+
+
+  // canvas 事件 mousedown, mousemove, mouseup
   onMouseDown(e) {
     const { operation } = this.props
 
+    console.log('on mouse down', operation)
     switch (operation) {
-      case 'line':
-        const data = this.tool.onMouseDown(...this.getCursorPosition(e), this.props.color, this.props.size, this.props.fillColor)
-
-        data && data[0] && this.props.onItemStart && this.props.onItemStart.apply(null, data)
-        if (this.props.onDebouncedItemChange) {
-          this.interval = window.setInterval(this.onDebouncedMove, this.props.debounceTime)
-        }
-        break;
-      case 'clean':
-        const cleanData = this.tool.onMouseDown(...this.getCursorPosition(e), '#ffffff', this.props.size, this.props.fillColor)
-
-        cleanData && cleanData[0] && this.props.onItemStart && this.props.onItemStart.apply(null, cleanData)
-        if (this.props.onDebouncedItemChange) {
-          this.interval = window.setInterval(this.onDebouncedMove, this.props.debounceTime)
-        }
-        break;
-      case 'text':
-        this.setState({ isTexting: true })
-        break;
+      case OPERATION_TYPE.DRAW_LINE:
+        this.onDrawlineMouseDown(e)
+        break
+      case OPERATION_TYPE.CLEAR:
+        this.onCleanMouseDown(e)
+        break
+      case OPERATION_TYPE.TEXT:
+        this.onAddTextArea(e)
+        break
       default:
-        break;
+        break
     }
 
   }
@@ -119,12 +135,20 @@ export default class SketchPad extends Component {
   }
 
   onMouseUp(e) {
+    const { operation } = this.props
 
-    const data = this.tool.onMouseUp(...this.getCursorPosition(e));
-    data && data[0] && this.props.onCompleteItem && this.props.onCompleteItem.apply(null, data);
-    if (this.props.onDebouncedItemChange) {
-      clearInterval(this.interval);
-      this.interval = null;
+    console.log('on mouse up', operation)
+    switch (operation) {
+      case OPERATION_TYPE.DRAW_LINE:
+        this.onDrawlineMouseUp(e)
+        break
+      case OPERATION_TYPE.CLEAR:
+        this.onCleanMouseUp(e)
+        break
+      case OPERATION_TYPE.TEXT:
+        break
+      default:
+        break
     }
   }
 
@@ -137,11 +161,149 @@ export default class SketchPad extends Component {
     ]
   }
 
-  render() {
-    const { width, height, canvasClassName } = this.props
 
+  // format message, send message
+  sendMessage(op, data) {
+    const msg = {
+      op,
+      data
+    }
+    this.props.onCompleteItem && this.props.onCompleteItem(msg)
+  }
+
+
+
+
+
+  // 不同操作的响应事件
+  onDrawlineMouseDown(e) {
+    const data = this.tool.onMouseDown(...this.getCursorPosition(e), this.props.color, this.props.size, this.props.fillColor)
+
+    data && data[0] && this.props.onItemStart && this.props.onItemStart.apply(null, data)
+    if (this.props.onDebouncedItemChange) {
+      this.interval = window.setInterval(this.onDebouncedMove, this.props.debounceTime)
+    }
+  }
+
+  onDrawlineMouseUp(e) {
+    const data = this.tool.onMouseUp(...this.getCursorPosition(e));
+    data && data[0] && this.sendMessage(OPERATION_TYPE.DRAW_LINE, data[0])
+    if (this.props.onDebouncedItemChange) {
+      clearInterval(this.interval);
+      this.interval = null;
+    }
+  }
+
+  onCleanMouseDown(e) {
+    const cleanData = this.tool.onMouseDown(...this.getCursorPosition(e), '#ffffff', this.props.size, this.props.fillColor)
+
+    cleanData && cleanData[0] && this.props.onItemStart && this.props.onItemStart.apply(null, cleanData)
+    if (this.props.onDebouncedItemChange) {
+      this.interval = window.setInterval(this.onDebouncedMove, this.props.debounceTime)
+    }
+  }
+
+  onCleanMouseUp(e) {
+    const data = this.tool.onMouseUp(...this.getCursorPosition(e));
+    data && data[0] && this.sendMessage(OPERATION_TYPE.CLEAR, data[0])
+    if (this.props.onDebouncedItemChange) {
+      clearInterval(this.interval);
+      this.interval = null;
+    }
+  }
+
+  onAddTextArea(e) {
+    const textarea = this.textarea
+    const pos = this.getCursorPosition(e)
+    textarea.value = ''
+    textarea.style.display = 'block'
+    textarea.style.left = pos[0] + 'px'
+    textarea.style.top = pos[1] + 'px'
+    textarea.focus()
+    textarea.placeholder = "Type here:"
+
+    textarea.addEventListener('keypress', (e) => {
+      if (e.keyCode === 13) {
+        let currentPos = [textarea.offsetLeft, textarea.offsetTop]
+        e.preventDefault()
+        const text = textarea.value
+        this.addText({pos: currentPos, text})
+        textarea.style.display = 'none'
+
+        // 广播消息
+        this.sendMessage(OPERATION_TYPE.TEXT, { pos: currentPos, text })
+      }
+    })
+  }
+
+  dragTextArea(e) {
+    const textarea = this.textarea
+
+    const x = textarea.offsetLeft - e.clientX, y = textarea.offsetTop - e.clientY
+
+    const drag = (e) => {
+      textarea.style.left = e.clientX + x + 'px';
+      textarea.style.top = e.clientY + y + 'px';
+    }
+
+    const stopDrag = () => {
+      document.removeEventListener('mousemove', drag)
+      document.removeEventListener('mouseup', stopDrag)
+    }
+
+    document.addEventListener('mousemove', drag)
+    document.addEventListener('mouseup', stopDrag)
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+  // 内部函数
+
+  // 绘图操作
+  drawItems(items, animate = false) {
+    console.log(items)
+    items.forEach(item => {
+      switch (item.op) {
+        case OPERATION_TYPE.DRAW_LINE:
+          this.tool.draw(item.data, animate)
+          break
+        case OPERATION_TYPE.CLEAR:
+          this.tool.draw(item.data, false)
+          break
+        case OPERATION_TYPE.TEXT:
+          this.addText(item.data)
+          break
+        default:
+          break
+      }
+    })
+  }
+
+  addText({pos, text}) {
+    this.ctx.globalCompositeOperation = "source-over";
+    this.ctx.font = '16px Droid sans';
+    this.ctx.fillStyle = 'black';
+    this.ctx.fillText(text, pos[0], pos[1]);
+  }
+
+  _clear() {
+    this.ctx.clearRect(0, 0, this.props.width, this.props.height)
+  }
+
+  render() {
+    const { width, height, canvasClassName, operation } = this.props
+    const { isTexting } = this.state
     return (
-        <div className="sketch-pad">
+        <div className={styles.sketchPad}>
             <canvas
                 ref={(canvas) => { this.canvasRef = canvas }}
                 className={canvasClassName}
@@ -152,6 +314,15 @@ export default class SketchPad extends Component {
                 width={width}
                 height={height}
             />
+
+            <textarea
+              ref={(tarea) => { this.textarea = tarea } }
+              className={classNames({
+                [styles.textareaShow]: isTexting,
+                [styles.canvasTextArea]: true,
+              })}
+              onMouseDown={this.dragTextArea.bind(this)}
+            ></textarea>
         </div>
     )
   }

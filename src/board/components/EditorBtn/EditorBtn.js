@@ -29,10 +29,10 @@ class EditorBtn extends React.Component {
   }
 
   render() {
-    const { type, text, arrow } = this.props
+    const { type, text, arrow, onClick } = this.props
 
     return (
-      <div className={styles.editorBtn}>
+      <div className={styles.editorBtn} onClick={onClick}>
         <div className={styles.iconContainer}>
           <span className={styles.icon}>{IconMap[type]}</span>
           {arrow ? <div className={styles.triangle}></div> : null}

@@ -55,6 +55,7 @@
   },
   "devDependencies": {
     "babel-plugin-import": "^1.6.2",
+    "classnames": "^2.2.5",
     "express": "^4.15.4",
     "node-sass": "^4.7.2",
     "sass-loader": "^6.0.6"

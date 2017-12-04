@@ -62,6 +62,8 @@ class Room extends React.Component {
                 <div className={styles.sketchPadContainer}>
                   <WhiteBoard
                     items={this.concatDataMap(this.props.dataMap)}
+                    undo={this.props.undo}
+                    remoteType={this.props.remoteType}
                     onCompleteItem={(i) => this.props.onSendData(i)}
                   />
                 </div>
