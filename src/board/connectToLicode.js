@@ -128,6 +128,15 @@ const connectToLicode = (Component, username) => {
                   )
               })
               break
+            case OPERATION_TYPE.CLEAR:
+              this.setState({
+                  remoteType: REMOTE_OPERATION.INCREMENT,
+                  dataMap: dataMap.update(
+                      stream.getID(),
+                      data => data.update('sketchPadItems', items => !items ? List([msg]) : items.push(msg)),
+                  )
+              })
+              break
             case OPERATION_TYPE.TEXT:
               this.setState({
                   remoteType: REMOTE_OPERATION.INCREMENT,

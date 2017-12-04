@@ -137,7 +137,6 @@ export default class SketchPad extends Component {
   onMouseUp(e) {
     const { operation } = this.props
 
-    console.log('on mouse up', operation)
     switch (operation) {
       case OPERATION_TYPE.DRAW_LINE:
         this.onDrawlineMouseUp(e)
@@ -221,19 +220,20 @@ export default class SketchPad extends Component {
     textarea.style.top = pos[1] + 'px'
     textarea.focus()
     textarea.placeholder = "Type here:"
+  }
 
-    textarea.addEventListener('keypress', (e) => {
-      if (e.keyCode === 13) {
-        let currentPos = [textarea.offsetLeft, textarea.offsetTop]
-        e.preventDefault()
-        const text = textarea.value
-        this.addText({pos: currentPos, text})
-        textarea.style.display = 'none'
+  onTextAreaKeyPress(e) {
+    const textarea = this.textarea
+    if (e.keyCode === 13) {
+      let currentPos = [textarea.offsetLeft, textarea.offsetTop]
+      e.preventDefault()
+      const text = textarea.value
+      this.addText({pos: currentPos, text})
+      textarea.style.display = 'none'
 
-        // 广播消息
-        this.sendMessage(OPERATION_TYPE.TEXT, { pos: currentPos, text })
-      }
-    })
+      // 广播消息
+      this.sendMessage(OPERATION_TYPE.TEXT, { pos: currentPos, text })
+    }
   }
 
   dragTextArea(e) {
@@ -322,6 +322,7 @@ export default class SketchPad extends Component {
                 [styles.canvasTextArea]: true,
               })}
               onMouseDown={this.dragTextArea.bind(this)}
+              onKeyDown={this.onTextAreaKeyPress.bind(this)}
             ></textarea>
         </div>
     )
