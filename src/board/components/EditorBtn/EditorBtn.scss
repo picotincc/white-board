@@ -43,6 +43,15 @@
       right: 0;
       bottom: 0;
     }
+
+    :local(.colorCircle) {
+      width: 10px;
+      height: 10px;
+      border-radius: 10px;
+      position: absolute;
+      bottom: 1px;
+      right: 6px;
+    }
   }
 
   :local(.iconText) {

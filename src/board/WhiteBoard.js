@@ -5,7 +5,7 @@ import { TOOL_LINE, TOOL_PENCIL } from '../tools'
 import styles from './whiteboard.scss'
 import SketchPad from './SketchPad'
 import EditorBtn from './components/EditorBtn/EditorBtn'
-import { PenIcon, RubberIcon, ClearIcon, AuthenticatedIcon } from './svg'
+import { PenIcon, RubberIcon, ClearIcon, AuthenticatedIcon, StrokeIcon } from './svg'
 import { OPERATION_TYPE } from './ConstantUtil'
 
 const colorsMenu = [
@@ -27,7 +27,9 @@ class WhiteBoard extends React.Component {
     colorVisible: false,
     scale: 100,
     operation: OPERATION_TYPE.DRAW_LINE,
-    tool: TOOL_PENCIL
+    tool: TOOL_PENCIL,
+    lineType: 'stroke',
+    size: 3
   }
 
   componentDidMount() {
@@ -43,14 +45,20 @@ class WhiteBoard extends React.Component {
     return (
       <Menu className={styles.customMenu}>
         <Menu.Item>
-          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAW_LINE, tool: TOOL_PENCIL })}>
+          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAW_LINE, tool: TOOL_PENCIL, lineType: 'stroke', size: 3 })}>
+            <span className={styles.itemIcon}><StrokeIcon /></span>
+            <span className={styles.itemText}>画笔</span>
+          </div>
+        </Menu.Item>
+        <Menu.Item>
+          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAW_LINE, tool: TOOL_PENCIL, lineType: 'pen', size: 1 })}>
             <span className={styles.itemIcon}><PenIcon /></span>
             <span className={styles.itemText}>钢笔</span>
           </div>
         </Menu.Item>
 
         <Menu.Item>
-          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAW_LINE, tool: TOOL_LINE })}>
+          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAW_LINE, tool: TOOL_LINE, lineType: 'straight', size: 1 })}>
             <span className={styles.itemIcon}><div className={styles.straightLine} /></span>
             <span className={styles.itemText}>直线</span>
           </div>
@@ -127,7 +135,9 @@ class WhiteBoard extends React.Component {
       color,
       colorVisible,
       operation,
-      tool
+      tool,
+      lineType,
+      size
     } = this.state
 
     return (
@@ -137,7 +147,7 @@ class WhiteBoard extends React.Component {
             <EditorBtn type="select" text="选择" selected={operation === OPERATION_TYPE.SELECT}/>
 
             <Dropdown overlay={this.renderStrokeMenu()} placement="bottomCenter" trigger={['hover']}>
-              <div><EditorBtn type="stroke" text="笔触" arrow selected={operation === OPERATION_TYPE.DRAW_LINE}/></div>
+              <div><EditorBtn type={lineType} text="笔触" arrow selected={operation === OPERATION_TYPE.DRAW_LINE}/></div>
             </Dropdown>
 
             <EditorBtn type="shape" text="形状" arrow selected={operation === OPERATION_TYPE.DRAW_SHAPE} />
@@ -149,7 +159,7 @@ class WhiteBoard extends React.Component {
               visible={colorVisible}
               onVisibleChange={(flag) => this.setState({ colorVisible: flag })}
             >
-              <div><EditorBtn type="color" text="颜色" arrow /></div>
+              <div><EditorBtn type="color" text="颜色" arrow color={colorsMenu.find(c => c.name === color).color}/></div>
             </Dropdown>
 
 
@@ -182,6 +192,7 @@ class WhiteBoard extends React.Component {
           width={986}
           height={562}
           tool={tool}
+          size={size}
           remoteType={remoteType}
           color={colorsMenu.find(c => c.name === color).color}
           operation={operation}

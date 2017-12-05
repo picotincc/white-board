@@ -1,11 +1,13 @@
 import React from 'react'
 import styles from './EditorBtn.scss'
 import classNames from 'classnames'
-import { SelectIcon, StrokeIcon, ShapeIcon, ColorIcon, TextIcon, RubberIcon, ImportIcon, UndoIcon, RedoIcon, AmplificationIcon, SaveIcon, LockedIcon, UnlockIcon } from '../../svg'
+import { PenIcon, SelectIcon, StrokeIcon, ShapeIcon, ColorIcon, TextIcon, RubberIcon, ImportIcon, UndoIcon, RedoIcon, AmplificationIcon, SaveIcon, LockedIcon, UnlockIcon } from '../../svg'
 
 const IconMap = {
   'select': <SelectIcon />,
   'stroke': <StrokeIcon />,
+  'pen': <PenIcon />,
+  'straight': <div style={{ width: '22px', border: 'solid 1px #926dea', marginTop: '12px' }} />,
   'shape': <ShapeIcon />,
   'color': <ColorIcon />,
   'text': <TextIcon />,
@@ -30,7 +32,7 @@ class EditorBtn extends React.Component {
   }
 
   render() {
-    const { type, text, arrow, onClick, selected } = this.props
+    const { type, text, arrow, onClick, selected, color } = this.props
 
     return (
       <div
@@ -42,6 +44,7 @@ class EditorBtn extends React.Component {
       >
         <div className={styles.iconContainer}>
           <span className={styles.icon}>{IconMap[type]}</span>
+          {(type === 'color') && color ? <div className={styles.colorCircle} style={{backgroundColor: color}} ></div> : null}
           {arrow ? <div className={styles.triangle}></div> : null}
         </div>
         <div className={styles.iconText}>
