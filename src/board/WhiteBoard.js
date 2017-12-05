@@ -1,7 +1,7 @@
 import React from 'react'
 import { Dropdown, Menu, Slider } from 'antd'
 
-import { TOOL_LINE, TOOL_PENCIL } from '../tools'
+import { TOOL_LINE, TOOL_PENCIL, TOOL_RECTANGLE, TOOL_ELLIPSE } from '../tools'
 import styles from './whiteboard.scss'
 import SketchPad from './SketchPad'
 import EditorBtn from './components/EditorBtn/EditorBtn'
@@ -36,6 +36,15 @@ class WhiteBoard extends React.Component {
 
   }
 
+  handleSaveCanvasToImage() {
+    const canvas = this.sketchPad.canvas
+    const img = canvas.toDataURL("image/png")
+    const a = document.createElement('a')
+    a.href = img
+    a.download = '下载.png'
+    a.click()
+  }
+
   handleUndo() {
     console.log('undo')
     this.props.undo({ op: OPERATION_TYPE.UNDO })
@@ -61,6 +70,25 @@ class WhiteBoard extends React.Component {
           <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAW_LINE, tool: TOOL_LINE, lineType: 'straight', size: 1 })}>
             <span className={styles.itemIcon}><div className={styles.straightLine} /></span>
             <span className={styles.itemText}>直线</span>
+          </div>
+        </Menu.Item>
+      </Menu>
+    )
+  }
+
+  renderShapeMenu() {
+    return (
+      <Menu className={styles.customMenu}>
+        <Menu.Item>
+          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAW_SHAPE, tool: TOOL_RECTANGLE, shapeType: 'rect', size: 1 })}>
+            <span className={styles.itemIcon}><div className={styles.rect}/></span>
+            <span className={styles.itemText}>矩形</span>
+          </div>
+        </Menu.Item>
+        <Menu.Item>
+          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAW_SHAPE, tool: TOOL_ELLIPSE, shapeType: 'ellipse', size: 1 })}>
+            <span className={styles.itemIcon}><div className={styles.ellipse} /></span>
+            <span className={styles.itemText}>圆形</span>
           </div>
         </Menu.Item>
       </Menu>
@@ -150,7 +178,9 @@ class WhiteBoard extends React.Component {
               <div><EditorBtn type={lineType} text="笔触" arrow selected={operation === OPERATION_TYPE.DRAW_LINE}/></div>
             </Dropdown>
 
-            <EditorBtn type="shape" text="形状" arrow selected={operation === OPERATION_TYPE.DRAW_SHAPE} />
+            <Dropdown overlay={this.renderShapeMenu()} placement="bottomCenter" trigger={['hover']}>
+              <div><EditorBtn type="shape" text="形状" arrow selected={operation === OPERATION_TYPE.DRAW_SHAPE} /></div>
+            </Dropdown>
 
             <Dropdown
               overlay={this.renderColorMenu()}
@@ -179,7 +209,7 @@ class WhiteBoard extends React.Component {
               <div><EditorBtn type="amp" text="100%" arrow /></div>
             </Dropdown>
 
-            <EditorBtn type="save" text="保存" />
+            <EditorBtn type="save" text="保存" onClick={this.handleSaveCanvasToImage.bind(this)}/>
           </div>
           <div className={styles.right}>
             <EditorBtn type="locked" text="已锁" />

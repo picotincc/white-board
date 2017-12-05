@@ -44,6 +44,21 @@
       	border: solid 1px #d9d9d9;
         margin-top: 7px;
       }
+
+      :local(.rect) {
+        width: 14px;
+        height: 14px;
+        border: solid 2px #d9d9d9;
+        margin-top: 2px;
+      }
+
+      :local(.ellipse) {
+        margin-top: 2px;
+        width: 15px;
+        height: 15px;
+        border-radius: 7.5px;
+        border: solid 2px #d9d9d9;
+      }
     }
 
     :local(.itemText) {
@@ -59,6 +74,13 @@
 
       svg {
         fill: #9b9b9b;
+      }
+
+      :local(.rect) {
+        border-color: #9b9b9b;
+      }
+      :local(.ellipse) {
+        border-color: #9b9b9b;
       }
     }
 

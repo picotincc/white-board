@@ -108,6 +108,9 @@ export default class SketchPad extends Component {
       case OPERATION_TYPE.DRAW_LINE:
         this.onDrawlineMouseDown(e)
         break
+      case OPERATION_TYPE.DRAW_SHAPE:
+        this.onDrawlineMouseDown(e)
+        break
       case OPERATION_TYPE.CLEAR:
         this.onCleanMouseDown(e)
         break
@@ -143,6 +146,9 @@ export default class SketchPad extends Component {
       case OPERATION_TYPE.DRAW_LINE:
         this.onDrawlineMouseUp(e)
         break
+      case OPERATION_TYPE.DRAW_SHAPE:
+        this.onDrawlineMouseUp(e)
+        break
       case OPERATION_TYPE.CLEAR:
         this.onCleanMouseUp(e)
         break
@@ -167,6 +173,7 @@ export default class SketchPad extends Component {
       op,
       data
     }
+    console.log(msg)
     this.props.onCompleteItem && this.props.onCompleteItem(msg)
   }
 
@@ -305,6 +312,10 @@ export default class SketchPad extends Component {
     items.forEach(item => {
       switch (item.op) {
         case OPERATION_TYPE.DRAW_LINE:
+          this.initTool(item.data.tool)
+          this.tool.draw(item.data, animate)
+          break
+        case OPERATION_TYPE.DRAW_SHAPE:
           this.initTool(item.data.tool)
           this.tool.draw(item.data, animate)
           break
