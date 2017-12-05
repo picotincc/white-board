@@ -218,8 +218,10 @@ export default class SketchPad extends Component {
     textarea.style.display = 'block'
     textarea.style.left = pos[0] + 'px'
     textarea.style.top = pos[1] + 'px'
-    textarea.focus()
     textarea.placeholder = "Type here:"
+    setTimeout(() => {
+      textarea.focus()
+    }, 0)
   }
 
   onTextAreaKeyPress(e) {
@@ -258,12 +260,30 @@ export default class SketchPad extends Component {
 
   onInsertPic(e) {
     console.log(this.props.operation)
+    const pos = this.getCursorPosition(e)
     const fileInput = this.fileInput
+    fileInput.pos = pos
     fileInput.click()
   }
 
   onFileChange(e) {
-    console.log(e.target.value)
+    const file = e.target.files[0]
+    if (file) {
+
+
+      const pos = this.fileInput.pos
+
+      let reader = new window.FileReader()
+      reader.readAsDataURL(file)
+      reader.onloadend = () => {
+        let base64data = reader.result
+        console.log(base64data)
+        this.drawPic({ pos, imgData: base64data })
+
+        this.sendMessage(OPERATION_TYPE.INSERT_PIC, { pos, imgData: base64data })
+      }
+    }
+
   }
 
 
@@ -285,13 +305,18 @@ export default class SketchPad extends Component {
     items.forEach(item => {
       switch (item.op) {
         case OPERATION_TYPE.DRAW_LINE:
+          this.initTool(item.data.tool)
           this.tool.draw(item.data, animate)
           break
         case OPERATION_TYPE.CLEAR:
+          this.initTool(item.data.tool)
           this.tool.draw(item.data, false)
           break
         case OPERATION_TYPE.TEXT:
           this.addText(item.data)
+          break
+        case OPERATION_TYPE.INSERT_PIC:
+          this.drawPic(item.data)
           break
         default:
           break
@@ -306,12 +331,20 @@ export default class SketchPad extends Component {
     this.ctx.fillText(text, pos[0], pos[1]);
   }
 
+  drawPic({ pos, imgData }) {
+    const img = document.createElement("img")
+    img.src = imgData
+    img.onload = (e) => {
+      this.ctx.drawImage(img, pos[0], pos[1])
+    }
+  }
+
   _clear() {
     this.ctx.clearRect(0, 0, this.props.width, this.props.height)
   }
 
   render() {
-    const { width, height, canvasClassName, operation } = this.props
+    const { width, height, canvasClassName } = this.props
     const { isTexting } = this.state
     return (
         <div className={styles.sketchPad}>
@@ -324,6 +357,7 @@ export default class SketchPad extends Component {
                 onMouseUp={this.onMouseUp}
                 width={width}
                 height={height}
+                style={{ cursor: 'crosshair' }}
             />
 
             <textarea
@@ -332,6 +366,7 @@ export default class SketchPad extends Component {
                 [styles.textareaShow]: isTexting,
                 [styles.canvasTextArea]: true,
               })}
+              onBlur={() => this.textarea.style.display = 'none'}
               onMouseDown={this.dragTextArea.bind(this)}
               onKeyDown={this.onTextAreaKeyPress.bind(this)}
             ></textarea>

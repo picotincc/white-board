@@ -4,6 +4,7 @@ export const REMOTE_OPERATION = {
 }
 
 export const OPERATION_TYPE = {
+  SELECT: 'select',
   DRAW_LINE: 'line',
   DRAW_SHAPE: 'shape',
   CLEAR: 'clear',
@@ -13,6 +14,12 @@ export const OPERATION_TYPE = {
   DROP_PIC: 'drop_pic',
   UNDO: 'undo',
   REDO: 'redo'
+}
+
+export const CURSOR_MAP = {
+  SELECT: 'select',
+  PENCIL: 'pencil',
+  RECT: 'rect'
 }
 
 const msgDataStruts = {

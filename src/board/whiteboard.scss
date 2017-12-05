@@ -29,6 +29,7 @@
   :local(.menuItem) {
     display: flex;
     width: 56px;
+    align-items: center;
 
     :local(.itemIcon) {
       width: 18px;
@@ -36,6 +37,12 @@
 
       svg {
         fill: #d9d9d9;
+      }
+
+      :local(.straightLine) {
+        width: 17px;
+      	border: solid 1px #d9d9d9;
+        margin-top: 7px;
       }
     }
 

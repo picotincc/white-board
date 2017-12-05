@@ -1,5 +1,6 @@
 import React from 'react'
 import styles from './EditorBtn.scss'
+import classNames from 'classnames'
 import { SelectIcon, StrokeIcon, ShapeIcon, ColorIcon, TextIcon, RubberIcon, ImportIcon, UndoIcon, RedoIcon, AmplificationIcon, SaveIcon, LockedIcon, UnlockIcon } from '../../svg'
 
 const IconMap = {
@@ -29,10 +30,16 @@ class EditorBtn extends React.Component {
   }
 
   render() {
-    const { type, text, arrow, onClick } = this.props
+    const { type, text, arrow, onClick, selected } = this.props
 
     return (
-      <div className={styles.editorBtn} onClick={onClick}>
+      <div
+        className={classNames({
+          [styles.editorBtn]: true,
+          'selected' : selected
+        })}
+        onClick={onClick}
+      >
         <div className={styles.iconContainer}>
           <span className={styles.icon}>{IconMap[type]}</span>
           {arrow ? <div className={styles.triangle}></div> : null}

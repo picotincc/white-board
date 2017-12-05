@@ -146,6 +146,15 @@ const connectToLicode = (Component, username) => {
                   )
               })
               break
+            case OPERATION_TYPE.INSERT_PIC:
+              this.setState({
+                  remoteType: REMOTE_OPERATION.INCREMENT,
+                  dataMap: dataMap.update(
+                      stream.getID(),
+                      data => data.update('sketchPadItems', items => !items ? List([msg]) : items.push(msg)),
+                  )
+              })
+              break;
             case OPERATION_TYPE.UNDO:
               this.setState({
                   remoteType: REMOTE_OPERATION.DECREMENT,
@@ -156,9 +165,10 @@ const connectToLicode = (Component, username) => {
               })
               break
             case OPERATION_TYPE.CLEAR_ALL:
+
               this.setState({
                 remoteType: REMOTE_OPERATION.DECREMENT,
-                dataMap: Map()
+                dataMap: dataMap.map(stream => stream.update('sketchPadItems', items => List([])))
               })
               break
             default:
@@ -209,7 +219,7 @@ const connectToLicode = (Component, username) => {
         }
 
         handleCleanAll() {
-          const { localStream } = this.state
+          const { localStream, dataMap } = this.state
           const uid = localStream.getID()
           const message = {
             id: v4(),
@@ -218,10 +228,10 @@ const connectToLicode = (Component, username) => {
             timestamp: Date.now()
           }
           localStream.sendData(message)
-           this.setState({
-               remoteType: REMOTE_OPERATION.DECREMENT,
-               dataMap: Map()
-           })
+          this.setState({
+            remoteType: REMOTE_OPERATION.DECREMENT,
+            dataMap: dataMap.map(stream => stream.update('sketchPadItems', items => List([])))
+          })
         }
 
         handleCreateRoom(role) {
