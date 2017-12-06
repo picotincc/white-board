@@ -99,7 +99,7 @@ class WhiteBoard extends React.Component {
     return (
       <Menu className={styles.customMenu}>
         <Menu.Item>
-          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.CLEAR })}>
+          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.CLEAR, tool: TOOL_PENCIL, size: 10 })}>
             <span className={styles.itemIcon}><RubberIcon /></span>
             <span className={styles.itemText}>擦改</span>
           </div>
@@ -172,7 +172,7 @@ class WhiteBoard extends React.Component {
       <div className={styles.whiteBoard}>
         <div className={styles.editorBar}>
           <div className={styles.left}>
-            <EditorBtn type="select" text="选择" selected={operation === OPERATION_TYPE.SELECT}/>
+            <EditorBtn type="select" text="选择" selected={operation === OPERATION_TYPE.SELECT} onClick={() => this.setState({ operation: OPERATION_TYPE.SELECT })} />
 
             <Dropdown overlay={this.renderStrokeMenu()} placement="bottomCenter" trigger={['hover']}>
               <div><EditorBtn type={lineType} text="笔触" arrow selected={operation === OPERATION_TYPE.DRAW_LINE}/></div>
