@@ -8,7 +8,7 @@ export default (context) => {
 
   const onMouseDown = (x, y, color, size) => {
     line = {
-      id: v4(),
+      // id: v4(),
       tool: TOOL_LINE,
       color,
       size,

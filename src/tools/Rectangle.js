@@ -8,7 +8,7 @@ export default (context) => {
 
   const onMouseDown = (x, y, color, size, fill) => {
     rectangle = {
-      id: v4(),
+      // id: v4(),
       tool: TOOL_RECTANGLE,
       color,
       size,
@@ -43,10 +43,11 @@ export default (context) => {
     context.restore();
   };
 
-  const onMouseUp = (x, y) => {
+  const onMouseUp = (x, y, tag = true) => {
     if (!rectangle) return;
     onMouseMove(x, y);
     const item = rectangle;
+    !tag && context.putImageData(imageData, 0, 0);
     imageData = null;
     rectangle = null;
     item.end = { x, y };

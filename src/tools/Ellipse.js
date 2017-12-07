@@ -8,7 +8,7 @@ export default (context) => {
 
   const onMouseDown = (x, y, color, size, fill) => {
     ellipse = {
-      id: v4(),
+      // id: v4(),
       tool: TOOL_ELLIPSE,
       color,
       size,
