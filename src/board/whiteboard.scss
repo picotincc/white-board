@@ -11,6 +11,8 @@
     padding: 0 60px;
 
     display: flex;
+    z-index: 5;
+    position: relative;
 
     :local(.left) {
       margin-right: 80px;

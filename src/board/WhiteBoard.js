@@ -165,7 +165,8 @@ class WhiteBoard extends React.Component {
       operation,
       tool,
       lineType,
-      size
+      size,
+      scale
     } = this.state
 
     return (
@@ -223,6 +224,7 @@ class WhiteBoard extends React.Component {
           height={562}
           tool={tool}
           size={size}
+          scale={scale}
           remoteType={remoteType}
           color={colorsMenu.find(c => c.name === color).color}
           operation={operation}

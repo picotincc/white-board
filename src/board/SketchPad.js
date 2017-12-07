@@ -70,7 +70,7 @@ export default class SketchPad extends Component {
     this.initTool(this.props.tool)
   }
 
-  componentWillReceiveProps({tool, items, remoteType}) {
+  componentWillReceiveProps({tool, items, remoteType, scale}) {
     switch (remoteType) {
       case REMOTE_OPERATION.INCREMENT:
         const newItems = items.filter(item => this.props.items.indexOf(item) === -1)
@@ -86,14 +86,16 @@ export default class SketchPad extends Component {
     this.initTool(tool)
   }
 
+  // componentDidUpdate({scale, items}) {
+  //   if (scale !== this.props.scale) {
+  //     this._clear()
+  //     this.drawItems(items)
+  //   }
+  // }
+
   initTool(tool) {
     this.tool = this.props.toolsMap[tool](this.ctx)
   }
-
-
-
-
-
 
 
 
@@ -126,65 +128,13 @@ export default class SketchPad extends Component {
 
   }
 
-
   onMouseMove(e) {
-    const { isDragging, startDragPoint, selectedItems } = this.state
+    const { isDragging } = this.state
     if (!isDragging) {
       const data = this.tool.onMouseMove(...this.getCursorPosition(e))
       data && data[0] && this.props.onEveryItemChange && this.props.onEveryItemChange.apply(null, data);
     } else {
-      const pos = this.getCursorPosition(e)
-      const diff = {
-        x: pos[0] - startDragPoint[0],
-        y: pos[1] - startDragPoint[1]
-      }
-
-      console.log('diff', diff)
-
-      const { items } = this.props
-      const newItems = fromJS(items).toJS().map(item => {
-        if (selectedItems.find(s => s.id === item.id)) {
-          switch (item.op) {
-            case OPERATION_TYPE.DRAW_LINE:
-              if (item.data.tool === TOOL_PENCIL) {
-                item.data.points = item.data.points.map(point => {
-                  point.x = point.x + diff.x
-                  point.y = point.y + diff.y
-                  return point
-                })
-              } else {
-                item.data.start.x = item.data.start.x + diff.x
-                item.data.start.y = item.data.start.y + diff.y
-                item.data.end.x = item.data.end.x + diff.x
-                item.data.end.y = item.data.end.y + diff.y
-              }
-              break
-            case OPERATION_TYPE.DRAW_SHAPE:
-              item.data.start.x = item.data.start.x + diff.x
-              item.data.start.y = item.data.start.y + diff.y
-              item.data.end.x = item.data.end.x + diff.x
-              item.data.end.y = item.data.end.y + diff.y
-              break
-            case OPERATION_TYPE.TEXT:
-              let textPos = item.data.pos
-              textPos[0] = textPos[0] + diff.x
-              textPos[1] = textPos[1] + diff.y
-              item.data.pos = textPos
-              break
-            case OPERATION_TYPE.INSERT_PIC:
-              let pos = item.data.pos
-              pos[0] = pos[0] + diff.x
-              pos[1] = pos[1] + diff.y
-              item.data.pos = pos
-              break
-            default:
-              break
-          }
-        }
-        return item
-      })
-      this._clear()
-      this.drawItems(newItems)
+      this.onSelectMouseMove(e)
     }
   }
 
@@ -237,6 +187,7 @@ export default class SketchPad extends Component {
   }
 
 
+
   // format message, send message
   sendMessage(op, data, pos = {}) {
     const msg = {
@@ -258,9 +209,7 @@ export default class SketchPad extends Component {
     const { selectedRect } = this.state
 
     if (selectedRect && this.isInGraph(pos, selectedRect)) {
-
       // TODO绘制框选矩阵的大矩阵
-
       this.setState({
         isDragging: true,
         startDragPoint: pos
@@ -273,15 +222,74 @@ export default class SketchPad extends Component {
         selectedItems: []
       })
       this.initTool(TOOL_RECTANGLE)
-      const data = this.tool.onMouseDown(...this.getCursorPosition(e), this.props.color, this.props.size, this.props.fillColor)
+      this.tool.onMouseDown(...this.getCursorPosition(e), this.props.color, this.props.size, this.props.fillColor)
     }
+  }
+
+  onSelectMouseMove(e) {
+    const { startDragPoint, selectedItems, selectedRect } = this.state
+    const pos = this.getCursorPosition(e)
+    const diff = {
+      x: pos[0] - startDragPoint[0],
+      y: pos[1] - startDragPoint[1]
+    }
+    const rect = this.rect
+    rect.style.display = 'block'
+    rect.style.left = (selectedRect.xMin + diff.x) + 'px'
+    rect.style.top = (selectedRect.yMin + diff.y) + 'px'
+    rect.style.width = (selectedRect.xMax - selectedRect.xMin) + 'px'
+    rect.style.height = (selectedRect.yMax - selectedRect.yMin) + 'px'
+
+    const { items } = this.props
+    const newItems = fromJS(items).toJS().map(item => {
+      if (selectedItems.find(s => s.id === item.id)) {
+        switch (item.op) {
+          case OPERATION_TYPE.DRAW_LINE:
+            if (item.data.tool === TOOL_PENCIL) {
+              item.data.points = item.data.points.map(point => {
+                point.x = point.x + diff.x
+                point.y = point.y + diff.y
+                return point
+              })
+            } else {
+              item.data.start.x = item.data.start.x + diff.x
+              item.data.start.y = item.data.start.y + diff.y
+              item.data.end.x = item.data.end.x + diff.x
+              item.data.end.y = item.data.end.y + diff.y
+            }
+            break
+          case OPERATION_TYPE.DRAW_SHAPE:
+            item.data.start.x = item.data.start.x + diff.x
+            item.data.start.y = item.data.start.y + diff.y
+            item.data.end.x = item.data.end.x + diff.x
+            item.data.end.y = item.data.end.y + diff.y
+            break
+          case OPERATION_TYPE.TEXT:
+            let textPos = item.data.pos
+            textPos[0] = textPos[0] + diff.x
+            textPos[1] = textPos[1] + diff.y
+            item.data.pos = textPos
+            break
+          case OPERATION_TYPE.INSERT_PIC:
+            let pos = item.data.pos
+            pos[0] = pos[0] + diff.x
+            pos[1] = pos[1] + diff.y
+            item.data.pos = pos
+            break
+          default:
+            break
+        }
+      }
+      return item
+    })
+    this._clear()
+    this.drawItems(newItems)
   }
 
   onSelectMouseUp(e) {
     const { isDragging, startDragPoint, selectedItems } = this.state
     if (!isDragging) {
       const data = this.tool.onMouseUp(...this.getCursorPosition(e), false)[0]
-
       let rect = {
         xMin: data.start.x,
         xMax: data.end.x,
@@ -321,10 +329,7 @@ export default class SketchPad extends Component {
           }
         }
       })
-
-
       // TODO绘制框选矩形的虚线
-
       this.setState({
         selectedItems,
         selectedRect: resultRect
@@ -338,6 +343,9 @@ export default class SketchPad extends Component {
         x: pos[0] - startDragPoint[0],
         y: pos[1] - startDragPoint[1]
       }
+      setTimeout(() => {
+        this.rect.style.display = 'none'
+      }, 0)
 
       const { items } = this.props
       const { selectedRect } = this.state
@@ -362,7 +370,6 @@ export default class SketchPad extends Component {
                 item.data.end.x = item.data.end.x + diff.x
                 item.data.end.y = item.data.end.y + diff.y
               }
-
               break
             case OPERATION_TYPE.DRAW_SHAPE:
               item.data.start.x = item.data.start.x + diff.x
@@ -400,7 +407,6 @@ export default class SketchPad extends Component {
     }
 
   }
-
 
   onDrawlineMouseDown(e) {
     const data = this.tool.onMouseDown(...this.getCursorPosition(e), this.props.color, this.props.size, this.props.fillColor)
@@ -548,8 +554,6 @@ export default class SketchPad extends Component {
   onFileChange(e) {
     const file = e.target.files[0]
     if (file) {
-
-
       const pos = this.fileInput.pos
 
       let reader = new window.FileReader()
@@ -574,15 +578,6 @@ export default class SketchPad extends Component {
     }
 
   }
-
-
-
-
-
-
-
-
-
 
 
 
@@ -646,19 +641,28 @@ export default class SketchPad extends Component {
   }
 
   render() {
-    const { width, height, canvasClassName } = this.props
-    const { isTexting, isDragging, selectedRect } = this.state
+    const { width, height, scale } = this.props
+    const { isTexting } = this.state
     return (
         <div className={styles.sketchPad}>
+            <div className={styles.canvasBackground} style={{ width: width * (scale / 100) + 'px', height: height * (scale / 100) + 'px' }}>
+              <svg
+                ref={(d) => this.rect = d}
+                className={styles.selectedRect}
+                style={{ display: 'none' }}
+              >
+                <rect className="rect" x="0" y="0" />
+              </svg>
+            </div>
             <canvas
                 ref={(canvas) => { this.canvasRef = canvas }}
-                className={canvasClassName}
+                className={styles.canvas}
                 onMouseDown={this.onMouseDown}
                 onMouseMove={this.onMouseMove}
                 onMouseOut={this.onMouseOut}
                 onMouseUp={this.onMouseUp}
-                width={width}
-                height={height}
+                width={width * (scale / 100)}
+                height={height * (scale / 100)}
                 style={{ cursor: 'crosshair' }}
             />
 
@@ -680,16 +684,7 @@ export default class SketchPad extends Component {
               onChange={this.onFileChange.bind(this)}
             />
 
-            {isDragging ? <div style={{
-              display: 'block',
-              position: 'absolute',
-              top: selectedRect.xMin + 'px',
-              left: selectedRect.yMin + 'px',
-              width: (selectedRect.xMax - selectedRect.xMin) + 'px',
-              height: (selectedRect.yMax - selectedRect.yMin) + 'px',
-              border: '1px dash red',
-              zIndex: 10
-            }}/> : null}
+
         </div>
     )
   }
