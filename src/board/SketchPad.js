@@ -71,27 +71,33 @@ export default class SketchPad extends Component {
   }
 
   componentWillReceiveProps({tool, items, remoteType, scale}) {
-    switch (remoteType) {
-      case REMOTE_OPERATION.INCREMENT:
-        const newItems = items.filter(item => this.props.items.indexOf(item) === -1)
-        this.drawItems(newItems, true)
-        break
-      case REMOTE_OPERATION.DECREMENT:
-        this._clear()
-        this.drawItems(items)
-        break
-      default:
-        break
+    if (scale !== this.props.scale) {
+      this._clear()
+      this.drawItems(items)
+    } else {
+      switch (remoteType) {
+        case REMOTE_OPERATION.INCREMENT:
+          const newItems = items.filter(item => this.props.items.map(i => i.id).indexOf(item.id) === -1)
+          this.drawItems(newItems, true)
+          break
+        case REMOTE_OPERATION.DECREMENT:
+          this._clear()
+          this.drawItems(items)
+          break
+        default:
+          break
+      }
     }
+
     this.initTool(tool)
   }
 
-  // componentDidUpdate({scale, items}) {
-  //   if (scale !== this.props.scale) {
-  //     this._clear()
-  //     this.drawItems(items)
-  //   }
-  // }
+  componentDidUpdate({ scale }) {
+    if (this.props.scale !== scale) {
+      this._clear()
+      this.drawItems(this.props.items)
+    }
+  }
 
   initTool(tool) {
     this.tool = this.props.toolsMap[tool](this.ctx)
@@ -122,6 +128,9 @@ export default class SketchPad extends Component {
       case OPERATION_TYPE.SELECT:
         this.onSelectMouseDown(e)
         break
+      case OPERATION_TYPE.DRAG:
+        this.onDragMouseDown(e)
+        break;
       default:
         break
     }
@@ -129,13 +138,26 @@ export default class SketchPad extends Component {
   }
 
   onMouseMove(e) {
-    const { isDragging } = this.state
-    if (!isDragging) {
-      const data = this.tool.onMouseMove(...this.getCursorPosition(e))
-      data && data[0] && this.props.onEveryItemChange && this.props.onEveryItemChange.apply(null, data);
-    } else {
-      this.onSelectMouseMove(e)
+    const { operation } = this.props
+    const { isDragging, isScrolling } = this.state
+
+    switch (operation) {
+      case OPERATION_TYPE.SELECT:
+        if (!isDragging) {
+          this.tool.onMouseMove(...this.getCursorPosition(e))
+        } else {
+          this.onSelectMouseMove(e)
+        }
+        break
+      case OPERATION_TYPE.DRAG:
+          if (isScrolling) {
+            this.onDragMouseMove(e)
+          }
+        break;
+      default:
+        this.tool.onMouseMove(...this.getCursorPosition(e))
     }
+
   }
 
   onMouseOut(e) {
@@ -172,6 +194,9 @@ export default class SketchPad extends Component {
       case OPERATION_TYPE.SELECT:
         this.onSelectMouseUp(e)
         break
+      case OPERATION_TYPE.DRAG:
+        this.onDragMouseUp(e)
+        break;
       default:
         break
     }
@@ -330,6 +355,14 @@ export default class SketchPad extends Component {
         }
       })
       // TODO绘制框选矩形的虚线
+
+      const rectRef = this.rect
+      rectRef.style.display = 'block'
+      rectRef.style.left = (resultRect.xMin) + 'px'
+      rectRef.style.top = (resultRect.yMin) + 'px'
+      rectRef.style.width = (resultRect.xMax - resultRect.xMin) + 'px'
+      rectRef.style.height = (resultRect.yMax - resultRect.yMin) + 'px'
+
       this.setState({
         selectedItems,
         selectedRect: resultRect
@@ -580,8 +613,37 @@ export default class SketchPad extends Component {
   }
 
 
+  onDragMouseDown(e) {
+    const pos = this.getCursorPosition(e)
+    this.setState({
+      startScrollPoint: pos,
+      isScrolling: true
+    })
+  }
+
+  onDragMouseMove(e) {
+    const { startScrollPoint } = this.state
+
+    const pos = this.getCursorPosition(e)
+    const diff = {
+      x: pos[0] - startScrollPoint[0],
+      y: pos[1] - startScrollPoint[1]
+    }
+    console.log('drag move', diff)
+    const canvas = this.canvas
+    const bg = this.canvasBg
+    canvas.style.top = canvas.offsetTop + diff.y + 'px'
+    canvas.style.left = canvas.offsetLeft + diff.x + 'px'
+    bg.style.top = bg.offsetTop + diff.y + 'px'
+    bg.style.left = bg.offsetLeft + diff.x + 'px'
+  }
+
+  onDragMouseUp(e) {
+    this.setState({ isScrolling: false, startScrollPoint: null })
+  }
 
   // 内部函数
+
 
   // 绘图操作
   drawItems(items, animate = false) {
@@ -645,7 +707,7 @@ export default class SketchPad extends Component {
     const { isTexting } = this.state
     return (
         <div className={styles.sketchPad}>
-            <div className={styles.canvasBackground} style={{ width: width * (scale / 100) + 'px', height: height * (scale / 100) + 'px' }}>
+            <div ref={(b) => this.canvasBg = b} className={styles.canvasBackground} style={{ width: (width * scale) + 'px', height: (height * scale) + 'px' }}>
               <svg
                 ref={(d) => this.rect = d}
                 className={styles.selectedRect}
@@ -661,8 +723,8 @@ export default class SketchPad extends Component {
                 onMouseMove={this.onMouseMove}
                 onMouseOut={this.onMouseOut}
                 onMouseUp={this.onMouseUp}
-                width={width * (scale / 100)}
-                height={height * (scale / 100)}
+                width={width * scale}
+                height={height * scale}
                 style={{ cursor: 'crosshair' }}
             />
 

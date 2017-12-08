@@ -2,7 +2,7 @@
   position: relative;
   width: 986px;
   height: 562px;
-  overflow: auto;
+  overflow: hidden;
 
   :local(.canvas) {
     z-index: 2;

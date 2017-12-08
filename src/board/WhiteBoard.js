@@ -2,6 +2,7 @@ import React from 'react'
 import { Dropdown, Menu, Slider } from 'antd'
 
 import { TOOL_LINE, TOOL_PENCIL, TOOL_RECTANGLE, TOOL_ELLIPSE } from '../tools'
+import { fromJS } from 'immutable'
 import styles from './whiteboard.scss'
 import SketchPad from './SketchPad'
 import EditorBtn from './components/EditorBtn/EditorBtn'
@@ -25,7 +26,7 @@ class WhiteBoard extends React.Component {
   state = {
     color: 'blue',
     colorVisible: false,
-    scale: 100,
+    scale: 1,
     operation: OPERATION_TYPE.DRAW_LINE,
     tool: TOOL_PENCIL,
     lineType: 'stroke',
@@ -41,13 +42,61 @@ class WhiteBoard extends React.Component {
     const img = canvas.toDataURL("image/png")
     const a = document.createElement('a')
     a.href = img
-    a.download = '下载.png'
+    a.download = 'download-whiteboard.png'
     a.click()
   }
 
   handleUndo() {
     console.log('undo')
     this.props.undo({ op: OPERATION_TYPE.UNDO })
+  }
+
+  scaleItems(items) {
+    const { scale } = this.state
+    const newItems = fromJS(items).map(item => {
+      switch (item.get('op')) {
+        case OPERATION_TYPE.DRAW_LINE:
+
+          if (item.getIn(['data', 'tool']) === TOOL_PENCIL) {
+            item = item.updateIn(['data', 'points'], points => points.map(p => {
+              p = p.update('x', x => x * scale)
+                    .update('y', y => y * scale)
+              return p
+            }))
+          } else {
+            item = item.updateIn(['data', 'start', 'x'], x => x * scale)
+                      .updateIn(['data', 'start', 'y'], y => y * scale)
+                      .updateIn(['data', 'end', 'x'], x => x * scale)
+                      .updateIn(['data', 'end', 'y'], y => y * scale)
+          }
+          break
+        case OPERATION_TYPE.DRAW_SHAPE:
+          item = item.updateIn(['data', 'start', 'x'], x => x * scale)
+                    .updateIn(['data', 'start', 'y'], y => y * scale)
+                    .updateIn(['data', 'end', 'x'], x => x * scale)
+                    .updateIn(['data', 'end', 'y'], y => y * scale)
+          break
+        case OPERATION_TYPE.TEXT:
+          item = item.updateIn(['data', 'pos'], pos => pos.map(p => p * scale))
+          break
+        case OPERATION_TYPE.INSERT_PIC:
+          item = item.updateIn(['data', 'pos'], pos => pos.map(p => p * scale))
+          break
+        default:
+          break
+      }
+
+      item = item.updateIn(['pos', 'x'], x => x * scale)
+                .updateIn(['pos', 'y'], y => y * scale)
+                .updateIn(['pos', 'w'], w => w * scale)
+                .updateIn(['pos', 'h'], h => h * scale)
+                .updateIn(['pos', 'center'], center => center.map(c => c * scale))
+
+      return item
+    })
+
+    return newItems.toJS()
+
   }
 
   renderStrokeMenu() {
@@ -147,8 +196,10 @@ class WhiteBoard extends React.Component {
           <Slider
             min={100}
             max={200}
-            onChange={(v) => this.setState({ scale: v })}
-            value={scale}
+            onChange={(v) => {
+              this.setState({ scale: (v / 100).toFixed(2) })
+            }}
+            value={scale * 100}
             tipFormatter={tip => tip + '%'}
           />
         </div>
@@ -207,8 +258,10 @@ class WhiteBoard extends React.Component {
             <EditorBtn type="redo" text="重做" />
 
             <Dropdown overlay={this.renderScaleMenu()} placement="bottomCenter" trigger={['hover']}>
-              <div><EditorBtn type="amp" text="100%" arrow /></div>
+              <div><EditorBtn type="amp" text={(scale * 100).toFixed(0) + '%'} arrow /></div>
             </Dropdown>
+
+            <EditorBtn type="amp" text="抓取" selected={operation === OPERATION_TYPE.DRAG} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAG })} />
 
             <EditorBtn type="save" text="保存" onClick={this.handleSaveCanvasToImage.bind(this)}/>
           </div>
@@ -219,7 +272,7 @@ class WhiteBoard extends React.Component {
         </div>
         <SketchPad
           ref={(sketchPad) => this.sketchPad = sketchPad}
-          items={items}
+          items={this.scaleItems(items)}
           width={986}
           height={562}
           tool={tool}

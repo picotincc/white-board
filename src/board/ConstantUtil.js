@@ -15,6 +15,7 @@ export const OPERATION_TYPE = {
   UNDO: 'undo',
   REDO: 'redo',
   MOVE: 'move',
+  DRAG: 'drag'
 }
 
 export const CURSOR_MAP = {

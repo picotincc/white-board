@@ -111,6 +111,7 @@ class Room extends React.Component {
           })
           return item
         })
+        console.log(resultItems)
         return resultItems
     }
 
