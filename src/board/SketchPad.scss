@@ -15,6 +15,7 @@
     position: absolute;
     width: 100%;
     height: 100%;
+    border: 1px solid #ccc;
 
     :local(.selectedRect) {
       position: absolute;
@@ -38,6 +39,7 @@
     display: none;
     width: 200px;
     height: 100px;
+    z-index: 10;
   }
 
   :local(.textareaShow) {

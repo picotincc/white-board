@@ -70,33 +70,47 @@ export default class SketchPad extends Component {
     this.initTool(this.props.tool)
   }
 
-  componentWillReceiveProps({tool, items, remoteType, scale}) {
-    if (scale !== this.props.scale) {
-      this._clear()
-      this.drawItems(items)
-    } else {
-      switch (remoteType) {
-        case REMOTE_OPERATION.INCREMENT:
-          const newItems = items.filter(item => this.props.items.map(i => i.id).indexOf(item.id) === -1)
-          this.drawItems(newItems, true)
-          break
-        case REMOTE_OPERATION.DECREMENT:
-          this._clear()
-          this.drawItems(items)
-          break
-        default:
-          break
-      }
+  componentWillReceiveProps({tool, items, remoteType}) {
+    switch (remoteType) {
+      case REMOTE_OPERATION.INCREMENT:
+        const newItems = items.filter(item => this.props.items.map(i => i.id).indexOf(item.id) === -1)
+        this.drawItems(newItems, true)
+        break
+      case REMOTE_OPERATION.DECREMENT:
+        this._clear()
+        this.drawItems(items)
+        break
+      default:
+        break
     }
+
 
     this.initTool(tool)
   }
 
   componentDidUpdate({ scale }) {
     if (this.props.scale !== scale) {
+      this.relocateCanvas(scale)
       this._clear()
       this.drawItems(this.props.items)
     }
+  }
+
+  relocateCanvas(prevScale) {
+    const { scale, width, height } = this.props
+    const canvas = this.canvas
+    const bg = this.canvasBg
+    let oTop = canvas.offsetTop
+    let oLeft = canvas.offsetLeft
+
+    let heightDiff = height * (scale - prevScale)
+    let topDiff = heightDiff * ((oTop - 1) / (height * (prevScale - 1) + 2))
+    let widthDiff = width * (scale - prevScale)
+    let leftDiff = widthDiff * ((oLeft - 1) / (width * (prevScale - 1) + 2))
+    canvas.style.top = oTop + topDiff + 'px'
+    canvas.style.left = oLeft + leftDiff + 'px'
+    bg.style.top = oTop + topDiff + 'px'
+    bg.style.left = oLeft + leftDiff + 'px'
   }
 
   initTool(tool) {
@@ -153,7 +167,7 @@ export default class SketchPad extends Component {
           if (isScrolling) {
             this.onDragMouseMove(e)
           }
-        break;
+        break
       default:
         this.tool.onMouseMove(...this.getCursorPosition(e))
     }
@@ -431,7 +445,11 @@ export default class SketchPad extends Component {
       this._clear()
       this.drawItems(newItems)
       const ops = selectedItems.map(item => item.id)
-      this.sendMessage(OPERATION_TYPE.MOVE, { ops, diff })
+      const { scale } = this.props
+      this.sendMessage(OPERATION_TYPE.MOVE, {
+        ops,
+        diff: { x: diff.x / scale, y: diff.y / scale}
+      })
 
       this.setState({
         isDragging: false,
@@ -448,11 +466,16 @@ export default class SketchPad extends Component {
   }
 
   onDrawlineMouseUp(e) {
-    const data = this.tool.onMouseUp(...this.getCursorPosition(e));
+    const data = this.tool.onMouseUp(...this.getCursorPosition(e))
+    const { scale } = this.props
     if (data && data[0]) {
       let lineData = data[0]
+      let pos = null
       if (lineData.tool === TOOL_PENCIL) {
         let xMax = 0, yMax = 0, xMin = lineData.points[0].x, yMin = lineData.points[0].y
+        lineData.points = lineData.points.map(p => {
+          return {x: p.x / scale, y: p.y / scale}
+        })
         lineData.points.forEach(p => {
           if (p.x > xMax) {
             xMax = p.x
@@ -467,26 +490,32 @@ export default class SketchPad extends Component {
             yMin = p.y
           }
         })
-        const pos = {
+        pos = {
           x: xMin,
           y: yMin,
           w: xMax - xMin,
           h: yMax - yMin,
           center: [ (xMin + xMax) / 2, (yMin + yMax) / 2 ]
         }
-        this.sendMessage(OPERATION_TYPE.DRAW_LINE, data[0], pos)
       } else {
-        const pos = {
+        lineData.start = {
+          x: lineData.start.x / scale,
+          y: lineData.start.y / scale
+        }
+        lineData.end = {
+          x: lineData.end.x / scale,
+          y: lineData.end.y / scale
+        }
+        pos = {
           x: lineData.start.x,
           y: lineData.start.y,
           w: lineData.end.x - lineData.start.x,
           h: lineData.end.y - lineData.start.y,
           center: [(lineData.start.x + lineData.end.x) / 2, (lineData.start.y + lineData.end.y) / 2]
         }
-        this.sendMessage(OPERATION_TYPE.DRAW_LINE, lineData, pos)
       }
-
-
+      lineData.size = lineData.size / scale
+      this.sendMessage(OPERATION_TYPE.DRAW_LINE, lineData, pos)
     }
   }
 
@@ -494,6 +523,17 @@ export default class SketchPad extends Component {
     const data = this.tool.onMouseUp(...this.getCursorPosition(e));
     if (data && data[0]) {
       let shape = data[0]
+      const { scale } = this.props
+      shape.start = {
+        x: shape.start.x / scale,
+        y: shape.start.y / scale
+      }
+
+      shape.end = {
+        x: shape.end.x / scale,
+        y: shape.end.y / scale
+      }
+      shape.size = shape.size / scale
       const pos = {
         x: shape.start.x,
         y: shape.start.y,
@@ -501,7 +541,8 @@ export default class SketchPad extends Component {
         h: shape.end.y - shape.start.y,
         center: [ (shape.end.x + shape.start.x) / 2, (shape.end.y + shape.start.y) / 2 ]
       }
-      this.sendMessage(OPERATION_TYPE.DRAW_SHAPE, data[0], pos)
+
+      this.sendMessage(OPERATION_TYPE.DRAW_SHAPE, shape, pos)
     }
   }
 
@@ -515,21 +556,50 @@ export default class SketchPad extends Component {
   }
 
   onCleanMouseUp(e) {
-    const data = this.tool.onMouseUp(...this.getCursorPosition(e));
-    data && data[0] && this.sendMessage(OPERATION_TYPE.CLEAR, data[0])
-    if (this.props.onDebouncedItemChange) {
-      clearInterval(this.interval);
-      this.interval = null;
+    const data = this.tool.onMouseUp(...this.getCursorPosition(e))
+
+
+    const { scale } = this.props
+    if (data && data[0]) {
+      let lineData = data[0]
+      let pos = null
+      let xMax = 0, yMax = 0, xMin = lineData.points[0].x, yMin = lineData.points[0].y
+      lineData.points = lineData.points.map(p => {
+        return {x: p.x / scale, y: p.y / scale}
+      }).forEach(p => {
+        if (p.x > xMax) {
+          xMax = p.x
+        }
+        if (p.x < xMin) {
+          xMin = p.x
+        }
+        if (p.y > yMax) {
+          yMax = p.y
+        }
+        if (p.y < yMin) {
+          yMin = p.y
+        }
+      })
+      pos = {
+        x: xMin,
+        y: yMin,
+        w: xMax - xMin,
+        h: yMax - yMin,
+        center: [ (xMin + xMax) / 2, (yMin + yMax) / 2 ]
+      }
+
+      this.sendMessage(OPERATION_TYPE.CLEAR, lineData, pos)
     }
   }
 
   onAddTextArea(e) {
     const textarea = this.textarea
+    const canvas = this.canvas
     const pos = this.getCursorPosition(e)
     textarea.value = ''
     textarea.style.display = 'block'
-    textarea.style.left = pos[0] + 'px'
-    textarea.style.top = pos[1] + 'px'
+    textarea.style.left = pos[0] + canvas.offsetLeft + 'px'
+    textarea.style.top = pos[1] + canvas.offsetTop + 'px'
     textarea.placeholder = "Type here:"
     setTimeout(() => {
       textarea.focus()
@@ -538,22 +608,27 @@ export default class SketchPad extends Component {
 
   onTextAreaKeyPress(e) {
     const textarea = this.textarea
+    const canvas = this.canvas
+    const { scale } = this.props
     if (e.keyCode === 13) {
-      let currentPos = [textarea.offsetLeft, textarea.offsetTop]
+      let currentPos = [textarea.offsetLeft - canvas.offsetLeft, textarea.offsetTop - canvas.offsetTop]
       e.preventDefault()
       const text = textarea.value
-      this.addText({pos: currentPos, text})
+      this.addText({pos: currentPos, text, fontSize: 16})
       textarea.style.display = 'none'
       const width = this.ctx.measureText(text).width
       const pos = {
-        x: currentPos[0],
-        y: currentPos[1],
-        w: width,
-        h: 16,
-        center: [currentPos[0] + (width / 2), currentPos[1] + 8 ]
+        x: currentPos[0] / scale,
+        y: currentPos[1] / scale,
+        w: width / scale,
+        h: 16 / scale,
+        center: [(currentPos[0] + (width / 2)) / scale, (currentPos[1] + 8) / scale ]
       }
+
+      //文字放大
+
       // 广播消息
-      this.sendMessage(OPERATION_TYPE.TEXT, { pos: currentPos, text }, pos)
+      this.sendMessage(OPERATION_TYPE.TEXT, { pos: [currentPos[0] / scale, currentPos[1] / scale], text, fontSize: 16 }, pos)
     }
   }
 
@@ -588,7 +663,7 @@ export default class SketchPad extends Component {
     const file = e.target.files[0]
     if (file) {
       const pos = this.fileInput.pos
-
+      const { scale } = this.props
       let reader = new window.FileReader()
       reader.readAsDataURL(file)
       reader.onloadend = () => {
@@ -598,18 +673,20 @@ export default class SketchPad extends Component {
         img.onload = (e) => {
           this.ctx.drawImage(img, pos[0], pos[1])
           let posInfo = {
-            x: pos[0],
-            y: pos[1],
-            w: img.width,
-            h: img.height
+            x: pos[0] / scale,
+            y: pos[1] / scale,
+            w: img.width / scale,
+            h: img.height / scale
           }
           posInfo.center = [posInfo.x + (posInfo.w / 2), posInfo.y + (posInfo.h / 2)]
-          this.sendMessage(OPERATION_TYPE.INSERT_PIC, { pos, imgData: base64data }, posInfo)
+          this.sendMessage(OPERATION_TYPE.INSERT_PIC, {
+            pos: [pos[0] / scale, pos[1] / scale],
+            info: { w: posInfo.w, h: posInfo.h },
+            imgData: base64data
+          }, posInfo)
         }
-
       }
     }
-
   }
 
 
@@ -622,20 +699,49 @@ export default class SketchPad extends Component {
   }
 
   onDragMouseMove(e) {
-    const { startScrollPoint } = this.state
+    const { scale, width, height } = this.props
+    const { startScrollPoint, isScrolling } = this.state
+
+    if (!isScrolling) {
+      return
+    }
 
     const pos = this.getCursorPosition(e)
     const diff = {
       x: pos[0] - startScrollPoint[0],
       y: pos[1] - startScrollPoint[1]
     }
+
     console.log('drag move', diff)
     const canvas = this.canvas
     const bg = this.canvasBg
-    canvas.style.top = canvas.offsetTop + diff.y + 'px'
-    canvas.style.left = canvas.offsetLeft + diff.x + 'px'
-    bg.style.top = bg.offsetTop + diff.y + 'px'
-    bg.style.left = bg.offsetLeft + diff.x + 'px'
+
+    let oTop = canvas.offsetTop
+    let oLeft = canvas.offsetLeft
+    let resTop = oTop + diff.y
+    let resLeft = oLeft + diff.x
+
+    if (resTop > 0) {
+      resTop = 0
+    }
+
+    if (resTop < -(height * (scale - 1))) {
+      resTop = - (height * (scale - 1))
+    }
+
+    if (resLeft > 0) {
+      resLeft = 0
+    }
+
+    if (resLeft < -(width * (scale - 1))) {
+      resLeft = - (width * (scale - 1))
+    }
+
+    canvas.style.top = resTop + 'px'
+    canvas.style.left = resLeft + 'px'
+    bg.style.top = resTop + 'px'
+    bg.style.left = resLeft + 'px'
+
   }
 
   onDragMouseUp(e) {

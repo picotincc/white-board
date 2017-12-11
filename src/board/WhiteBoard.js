@@ -62,12 +62,13 @@ class WhiteBoard extends React.Component {
               p = p.update('x', x => x * scale)
                     .update('y', y => y * scale)
               return p
-            }))
+            })).updateIn(['data', 'size'], size => size * scale)
           } else {
             item = item.updateIn(['data', 'start', 'x'], x => x * scale)
                       .updateIn(['data', 'start', 'y'], y => y * scale)
                       .updateIn(['data', 'end', 'x'], x => x * scale)
                       .updateIn(['data', 'end', 'y'], y => y * scale)
+                      .updateIn(['data', 'size'], size => size * scale)
           }
           break
         case OPERATION_TYPE.DRAW_SHAPE:
@@ -75,6 +76,7 @@ class WhiteBoard extends React.Component {
                     .updateIn(['data', 'start', 'y'], y => y * scale)
                     .updateIn(['data', 'end', 'x'], x => x * scale)
                     .updateIn(['data', 'end', 'y'], y => y * scale)
+                    .updateIn(['data', 'size'], size => size * scale)
           break
         case OPERATION_TYPE.TEXT:
           item = item.updateIn(['data', 'pos'], pos => pos.map(p => p * scale))
