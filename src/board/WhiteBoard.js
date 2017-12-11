@@ -51,6 +51,11 @@ class WhiteBoard extends React.Component {
     this.props.undo({ op: OPERATION_TYPE.UNDO })
   }
 
+  handleRedo() {
+    console.log('redo')
+    this.props.redo({ op: OPERATION_TYPE.REDO })
+  }
+
   scaleItems(items) {
     const { scale } = this.state
     const newItems = fromJS(items).map(item => {
@@ -71,6 +76,14 @@ class WhiteBoard extends React.Component {
                       .updateIn(['data', 'size'], size => size * scale)
           }
           break
+        case OPERATION_TYPE.CLEAR:
+          item = item.updateIn(['data', 'points'], points => points.map(p => {
+            p = p.update('x', x => x * scale)
+                  .update('y', y => y * scale)
+            return p
+          })).updateIn(['data', 'size'], size => size * scale)
+
+          break
         case OPERATION_TYPE.DRAW_SHAPE:
           item = item.updateIn(['data', 'start', 'x'], x => x * scale)
                     .updateIn(['data', 'start', 'y'], y => y * scale)
@@ -83,6 +96,7 @@ class WhiteBoard extends React.Component {
           break
         case OPERATION_TYPE.INSERT_PIC:
           item = item.updateIn(['data', 'pos'], pos => pos.map(p => p * scale))
+                    .updateIn(['data', 'info'], info => info.map(i => i * scale))
           break
         default:
           break
@@ -257,7 +271,7 @@ class WhiteBoard extends React.Component {
           </div>
           <div className={styles.middle}>
             <EditorBtn type="undo" text="撤销" onClick={this.handleUndo.bind(this)}/>
-            <EditorBtn type="redo" text="重做" />
+            <EditorBtn type="redo" text="重做" onClick={this.handleRedo.bind(this)}/>
 
             <Dropdown overlay={this.renderScaleMenu()} placement="bottomCenter" trigger={['hover']}>
               <div><EditorBtn type="amp" text={(scale * 100).toFixed(0) + '%'} arrow /></div>

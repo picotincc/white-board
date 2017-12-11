@@ -1,5 +1,6 @@
 import React, {Component, } from 'react'
 import PropTypes from 'prop-types'
+import { v4 } from 'uuid'
 import { findDOMNode } from 'react-dom'
 import classNames from 'classnames'
 import { Pencil, TOOL_PENCIL, Line, TOOL_LINE, Ellipse, TOOL_ELLIPSE, Rectangle, TOOL_RECTANGLE } from '../tools'
@@ -61,6 +62,8 @@ export default class SketchPad extends Component {
     this.onMouseOut = this.onMouseOut.bind(this)
     // this.onDebouncedMove = this.onDebouncedMove.bind(this)
     this.onMouseUp = this.onMouseUp.bind(this)
+
+    this._cacheImgs = {}
   }
 
   componentDidMount() {
@@ -187,6 +190,12 @@ export default class SketchPad extends Component {
       case OPERATION_TYPE.CLEAR:
         this.onCleanMouseUp(e)
         break
+      case OPERATION_TYPE.SELECT:
+        this.onSelectMouseUp(e)
+        break
+      case OPERATION_TYPE.DRAG:
+        this.onDragMouseUp(e)
+        break;
       default:
         break
     }
@@ -328,59 +337,63 @@ export default class SketchPad extends Component {
   onSelectMouseUp(e) {
     const { isDragging, startDragPoint, selectedItems } = this.state
     if (!isDragging) {
-      const data = this.tool.onMouseUp(...this.getCursorPosition(e), false)[0]
-      let rect = {
-        xMin: data.start.x,
-        xMax: data.end.x,
-        yMin: data.start.y,
-        yMax: data.end.y
-      }
+      const a = this.tool.onMouseUp(...this.getCursorPosition(e), false)
+      if (a && a[0]) {
+        const data = a[0]
+        let rect = {
+          xMin: data.start.x,
+          xMax: data.end.x,
+          yMin: data.start.y,
+          yMax: data.end.y
+        }
 
-      let resultRect = {
-        xMin: data.start.x,
-        xMax: data.end.x,
-        yMin: data.start.y,
-        yMax: data.end.y
-      }
+        let resultRect = {
+          xMin: data.start.x,
+          xMax: data.end.x,
+          yMin: data.start.y,
+          yMax: data.end.y
+        }
 
-      const { items } = this.props
-      const selectedItems = []
-      items.forEach(item => {
-        if (item.op !== OPERATION_TYPE.CLEAR && item.op !== OPERATION_TYPE.SELECT) {
-          const center = item.pos.center
-          if (this.isInGraph(center, rect)) {
-            selectedItems.push(item)
-            if (item.pos.x < resultRect.xMin ) {
-              resultRect.xMin = item.pos.x
-            }
+        const { items } = this.props
+        const selectedItems = []
+        items.forEach(item => {
+          if (item.op !== OPERATION_TYPE.CLEAR && item.op !== OPERATION_TYPE.SELECT) {
+            const center = item.pos.center
+            if (this.isInGraph(center, rect)) {
+              selectedItems.push(item)
+              if (item.pos.x < resultRect.xMin ) {
+                resultRect.xMin = item.pos.x
+              }
 
-            if (item.pos.x + item.pos.w > resultRect.xMax) {
-              resultRect.xMax = item.pos.x + item.pos.w
-            }
+              if (item.pos.x + item.pos.w > resultRect.xMax) {
+                resultRect.xMax = item.pos.x + item.pos.w
+              }
 
-            if (item.pos.y < resultRect.yMin ) {
-              resultRect.yMin = item.pos.y
-            }
+              if (item.pos.y < resultRect.yMin ) {
+                resultRect.yMin = item.pos.y
+              }
 
-            if (item.pos.y + item.pos.h > resultRect.yMax) {
-              resultRect.yMax = item.pos.y + item.pos.h
+              if (item.pos.y + item.pos.h > resultRect.yMax) {
+                resultRect.yMax = item.pos.y + item.pos.h
+              }
             }
           }
-        }
-      })
-      // TODO绘制框选矩形的虚线
+        })
 
-      const rectRef = this.rect
-      rectRef.style.display = 'block'
-      rectRef.style.left = (resultRect.xMin) + 'px'
-      rectRef.style.top = (resultRect.yMin) + 'px'
-      rectRef.style.width = (resultRect.xMax - resultRect.xMin) + 'px'
-      rectRef.style.height = (resultRect.yMax - resultRect.yMin) + 'px'
+        // TODO绘制框选矩形的虚线
 
-      this.setState({
-        selectedItems,
-        selectedRect: resultRect
-      })
+        const rectRef = this.rect
+        rectRef.style.display = 'block'
+        rectRef.style.left = (resultRect.xMin) + 'px'
+        rectRef.style.top = (resultRect.yMin) + 'px'
+        rectRef.style.width = (resultRect.xMax - resultRect.xMin) + 'px'
+        rectRef.style.height = (resultRect.yMax - resultRect.yMin) + 'px'
+
+        this.setState({
+          selectedItems,
+          selectedRect: resultRect
+        })
+      }
 
     } else {
 
@@ -566,7 +579,8 @@ export default class SketchPad extends Component {
       let xMax = 0, yMax = 0, xMin = lineData.points[0].x, yMin = lineData.points[0].y
       lineData.points = lineData.points.map(p => {
         return {x: p.x / scale, y: p.y / scale}
-      }).forEach(p => {
+      })
+      lineData.points.forEach(p => {
         if (p.x > xMax) {
           xMax = p.x
         }
@@ -587,7 +601,7 @@ export default class SketchPad extends Component {
         h: yMax - yMin,
         center: [ (xMin + xMax) / 2, (yMin + yMax) / 2 ]
       }
-
+      lineData.size = lineData.size / scale
       this.sendMessage(OPERATION_TYPE.CLEAR, lineData, pos)
     }
   }
@@ -668,8 +682,10 @@ export default class SketchPad extends Component {
       reader.readAsDataURL(file)
       reader.onloadend = () => {
         let base64data = reader.result
-        const img = document.createElement("img")
+        const img = new Image()
+        const mid = 'img_' + v4()
         img.src = base64data
+        this._cacheImgs[mid] = img
         img.onload = (e) => {
           this.ctx.drawImage(img, pos[0], pos[1])
           let posInfo = {
@@ -680,6 +696,7 @@ export default class SketchPad extends Component {
           }
           posInfo.center = [posInfo.x + (posInfo.w / 2), posInfo.y + (posInfo.h / 2)]
           this.sendMessage(OPERATION_TYPE.INSERT_PIC, {
+            mid,
             pos: [pos[0] / scale, pos[1] / scale],
             info: { w: posInfo.w, h: posInfo.h },
             imgData: base64data
@@ -787,12 +804,22 @@ export default class SketchPad extends Component {
     this.ctx.fillText(text, pos[0], pos[1]);
   }
 
-  drawPic({ pos, imgData }) {
-    const img = document.createElement("img")
-    img.src = imgData
-    img.onload = (e) => {
-      this.ctx.drawImage(img, pos[0], pos[1])
+  drawPic({ mid, pos, imgData, info }) {
+    let img = this._cacheImgs[mid]
+    if (img) {
+      img.width = info.w
+      this.ctx.drawImage(img, pos[0], pos[1], info.w, info.h)
+    } else {
+      img = new Image()
+      img.src = imgData
+      this._cacheImgs[mid] = img
+      img.width = info.w
+      img.onload = (e) => {
+        this.ctx.drawImage(img, pos[0], pos[1], info.w, info.h)
+      }
     }
+
+
   }
 
   isInGraph(point, rect) {

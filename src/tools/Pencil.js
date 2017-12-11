@@ -1,5 +1,3 @@
-import { v4 } from 'uuid';
-
 export const TOOL_PENCIL = 'pencil';
 
 export default (context) => {
@@ -8,7 +6,6 @@ export default (context) => {
 
   const onMouseDown = (x, y, color, size) => {
     stroke = {
-      // id: v4(),
       tool: TOOL_PENCIL,
       color,
       size,

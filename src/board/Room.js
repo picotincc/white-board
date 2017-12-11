@@ -111,7 +111,6 @@ class Room extends React.Component {
           })
           return item
         })
-        console.log(resultItems)
         return resultItems
     }
 
@@ -131,6 +130,7 @@ class Room extends React.Component {
                   <WhiteBoard
                     items={this.concatDataMap(this.props.dataMap)}
                     undo={this.props.undo}
+                    redo={this.props.redo}
                     onCleanAll={this.props.cleanAll}
                     remoteType={this.props.remoteType}
                     onCompleteItem={(i) => this.props.onSendData(i)}
