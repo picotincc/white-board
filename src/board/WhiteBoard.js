@@ -20,6 +20,14 @@ const colorsMenu = [
   { name: 'white', color: '#ffffff' },
 ]
 
+const cursorMap = {
+  'brush': require('./svg/cursor_brush.svg'),
+  'pen': require('./svg/cursor_brush.svg'),
+  'rubber': require('./svg/cursor_rubber.svg'),
+  'select': require('./svg/cursor_select.svg'),
+  'shape': require('./svg/cursor_shape.svg'),
+}
+
 
 class WhiteBoard extends React.Component {
 
@@ -30,7 +38,8 @@ class WhiteBoard extends React.Component {
     operation: OPERATION_TYPE.DRAW_LINE,
     tool: TOOL_PENCIL,
     lineType: 'stroke',
-    size: 3
+    size: 3,
+    cursor: cursorMap['brush']
   }
 
   componentDidMount() {
@@ -119,13 +128,13 @@ class WhiteBoard extends React.Component {
     return (
       <Menu className={styles.customMenu}>
         <Menu.Item>
-          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAW_LINE, tool: TOOL_PENCIL, lineType: 'stroke', size: 3 })}>
+          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAW_LINE, tool: TOOL_PENCIL, cursor: cursorMap['brush'], lineType: 'stroke', size: 3 })}>
             <span className={styles.itemIcon}><StrokeIcon /></span>
             <span className={styles.itemText}>画笔</span>
           </div>
         </Menu.Item>
         <Menu.Item>
-          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAW_LINE, tool: TOOL_PENCIL, lineType: 'pen', size: 1 })}>
+          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAW_LINE, tool: TOOL_PENCIL, cursor: cursorMap['pen'], lineType: 'pen', size: 1 })}>
             <span className={styles.itemIcon}><PenIcon /></span>
             <span className={styles.itemText}>钢笔</span>
           </div>
@@ -145,13 +154,13 @@ class WhiteBoard extends React.Component {
     return (
       <Menu className={styles.customMenu}>
         <Menu.Item>
-          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAW_SHAPE, tool: TOOL_RECTANGLE, shapeType: 'rect', size: 1 })}>
+          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAW_SHAPE, tool: TOOL_RECTANGLE, cursor: cursorMap['shape'], shapeType: 'rect', size: 1 })}>
             <span className={styles.itemIcon}><div className={styles.rect}/></span>
             <span className={styles.itemText}>矩形</span>
           </div>
         </Menu.Item>
         <Menu.Item>
-          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAW_SHAPE, tool: TOOL_ELLIPSE, shapeType: 'ellipse', size: 1 })}>
+          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAW_SHAPE, tool: TOOL_ELLIPSE, cursor: cursorMap['shape'], shapeType: 'ellipse', size: 1 })}>
             <span className={styles.itemIcon}><div className={styles.ellipse} /></span>
             <span className={styles.itemText}>圆形</span>
           </div>
@@ -164,7 +173,7 @@ class WhiteBoard extends React.Component {
     return (
       <Menu className={styles.customMenu}>
         <Menu.Item>
-          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.CLEAR, tool: TOOL_PENCIL, size: 10 })}>
+          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.CLEAR, tool: TOOL_PENCIL, cursor: cursorMap['rubber'], size: 10 })}>
             <span className={styles.itemIcon}><RubberIcon /></span>
             <span className={styles.itemText}>擦改</span>
           </div>
@@ -233,14 +242,15 @@ class WhiteBoard extends React.Component {
       tool,
       lineType,
       size,
-      scale
+      scale,
+      cursor
     } = this.state
 
     return (
       <div className={styles.whiteBoard}>
         <div className={styles.editorBar}>
           <div className={styles.left}>
-            <EditorBtn type="select" text="选择" selected={operation === OPERATION_TYPE.SELECT} onClick={() => this.setState({ operation: OPERATION_TYPE.SELECT })} />
+            <EditorBtn type="select" text="选择" selected={operation === OPERATION_TYPE.SELECT} onClick={() => this.setState({ operation: OPERATION_TYPE.SELECT, cursor: cursorMap['select'] })} />
 
             <Dropdown overlay={this.renderStrokeMenu()} placement="bottomCenter" trigger={['hover']}>
               <div><EditorBtn type={lineType} text="笔触" arrow selected={operation === OPERATION_TYPE.DRAW_LINE}/></div>
@@ -294,6 +304,7 @@ class WhiteBoard extends React.Component {
           tool={tool}
           size={size}
           scale={scale}
+          cursor={cursor}
           remoteType={remoteType}
           color={colorsMenu.find(c => c.name === color).color}
           operation={operation}

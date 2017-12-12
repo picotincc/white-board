@@ -120,7 +120,8 @@ const connectToLicode = (Component, username) => {
             remoteType: REMOTE_OPERATION.INCREMENT,
             dataMap: dataMap.update(
               stream.getID(),
-              data => data.update('sketchPadItems', items => !items ? List([msg]) : items.push(msg)),
+              data => data.update('sketchPadItems', items => !items ? List([msg]) : items.push(msg))
+                          .set('undoHistory', List([])),
             )
           })
           break
@@ -129,7 +130,8 @@ const connectToLicode = (Component, username) => {
             remoteType: REMOTE_OPERATION.INCREMENT,
             dataMap: dataMap.update(
               stream.getID(),
-              data => data.update('sketchPadItems', items => !items ? List([msg]) : items.push(msg)),
+              data => data.update('sketchPadItems', items => !items ? List([msg]) : items.push(msg))
+                          .set('undoHistory', List([])),
             )
           })
           break
@@ -138,7 +140,8 @@ const connectToLicode = (Component, username) => {
             remoteType: REMOTE_OPERATION.INCREMENT,
             dataMap: dataMap.update(
               stream.getID(),
-              data => data.update('sketchPadItems', items => !items ? List([msg]) : items.push(msg)),
+              data => data.update('sketchPadItems', items => !items ? List([msg]) : items.push(msg))
+                          .set('undoHistory', List([])),
             )
           })
           break
@@ -147,7 +150,8 @@ const connectToLicode = (Component, username) => {
             remoteType: REMOTE_OPERATION.INCREMENT,
             dataMap: dataMap.update(
               stream.getID(),
-              data => data.update('sketchPadItems', items => !items ? List([msg]) : items.push(msg)),
+              data => data.update('sketchPadItems', items => !items ? List([msg]) : items.push(msg))
+                          .set('undoHistory', List([])),
             )
           })
           break
@@ -156,7 +160,8 @@ const connectToLicode = (Component, username) => {
             remoteType: REMOTE_OPERATION.INCREMENT,
             dataMap: dataMap.update(
               stream.getID(),
-              data => data.update('sketchPadItems', items => !items ? List([msg]) : items.push(msg)),
+              data => data.update('sketchPadItems', items => !items ? List([msg]) : items.push(msg))
+                          .set('undoHistory', List([])),
             )
           })
           break
@@ -165,7 +170,8 @@ const connectToLicode = (Component, username) => {
             remoteType: REMOTE_OPERATION.DECREMENT,
             dataMap: dataMap.update(
               stream.getID(),
-              data => data.update('sketchPadItems', items => !items ? List([msg]) : items.push(msg)),
+              data => data.update('sketchPadItems', items => !items ? List([msg]) : items.push(msg))
+                          .set('undoHistory', List([])),
             )
           })
           break
@@ -211,7 +217,7 @@ const connectToLicode = (Component, username) => {
         case OPERATION_TYPE.CLEAR_ALL:
           this.setState({
             remoteType: REMOTE_OPERATION.DECREMENT,
-            dataMap: dataMap.map(stream => stream.update('sketchPadItems', items => List([])))
+            dataMap: dataMap.map(stream => stream.update('sketchPadItems', items => List([])).set('undoHistory', List([])))
           })
           break
         default:
@@ -234,7 +240,7 @@ const connectToLicode = (Component, username) => {
         remoteType: REMOTE_OPERATION.INCREMENT,
         dataMap: dataMap.update(uid, stream => {
           if (stream) {
-            return stream.update('sketchPadItems', items => !items ? List([message]) : items.push(message))
+            return stream.update('sketchPadItems', items => !items ? List([message]) : items.push(message)).set('undoHistory', List([]))
           }
           return Map({ sketchPadItems: List([message]) })
         })

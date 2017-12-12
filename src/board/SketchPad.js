@@ -858,7 +858,6 @@ export default class SketchPad extends Component {
                 onMouseUp={this.onMouseUp}
                 width={width * scale}
                 height={height * scale}
-                style={{ cursor: 'crosshair' }}
             />
 
             <textarea
