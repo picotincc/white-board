@@ -1,124 +1,120 @@
 import React from 'react'
-import axios from 'axios'
-import { Table, Button } from 'antd'
-import { List, fromJS } from 'immutable'
+import { v4 } from 'uuid'
+import {
+  List,
+  Map
+} from 'immutable'
 
 import styles from './App.scss'
-import Room from './Room'
-import connectToLicode from './connectToLicode'
-import randomWords from 'random-words'
-
-
-const serverUrl = 'https://www.menkor.cn:666'
+import WhiteBoard from './WhiteBoard'
+import { OPERATION_TYPE, REMOTE_OPERATION } from './ConstantUtil'
 
 class App extends React.Component {
 
   state = {
-      route: '/roomList',
-      role: 'presenter',
-      username: randomWords(),
-      roomList: List()
+    operationList: List([]),
+    remoteType: REMOTE_OPERATION.INCREMENT
   }
 
   componentDidMount() {
-      this.fetchRoomList()
+    
   }
 
-  handleEnterRoom(record) {
-      this.setState({
-          selectedRoom: record._id,
-          route: '/room',
-      })
-  }
+  // mergeOperationList(operationList) {
+  //   const data = dataMap.toJS()
+  //   let relocate = (pos, diff) => {
+  //     pos.x = pos.x + diff.x
+  //     pos.y = pos.y + diff.y
+  //     const center = pos.center
+  //     pos.center = [center[0] + diff.x, center[1] + diff.y]
+  //     return pos
+  //   }
 
-  handleCreateRoom() {
-    const data = {
-      username: this.state.username,
-      room: Date.now().toString(),
-      role: 'presenter'
-    }
+  //   let normalItems = operationList.filter(item => item.get('op') !== OPERATION_TYPE.MOVE)
+  //   let moveItems = operationList.filter(item => item.get('op') === OPERATION_TYPE.MOVE)
 
-    axios.post(`${serverUrl}/createToken/`, data).then(res => {
-      console.log(res)
-      this.fetchRoomList()
+  //   normalItems = normalItems.sort((a, b) => a.get('timestamp') - b.get('timestamp'))
+  //   const resultItems = fromJS(normalItems).toJS().map(item => {
+  //     moveItems.forEach(m => {
+  //       if (m.data.ops.indexOf(item.id) !== -1) {
+  //         const diff = m.data.diff
+  //         switch (item.op) {
+  //           case OPERATION_TYPE.DRAW_LINE:
+  //             if (item.data.tool === TOOL_PENCIL) {
+  //               item.data.points = item.data.points.map(point => {
+  //                 point.x = point.x + diff.x
+  //                 point.y = point.y + diff.y
+  //                 return point
+  //               })
+  //             } else {
+  //               item.data.start.x = item.data.start.x + diff.x
+  //               item.data.start.y = item.data.start.y + diff.y
+  //               item.data.end.x = item.data.end.x + diff.x
+  //               item.data.end.y = item.data.end.y + diff.y
+  //             }
+  //             break
+  //           case OPERATION_TYPE.DRAW_SHAPE:
+  //             item.data.start.x = item.data.start.x + diff.x
+  //             item.data.start.y = item.data.start.y + diff.y
+  //             item.data.end.x = item.data.end.x + diff.x
+  //             item.data.end.y = item.data.end.y + diff.y
+  //             break
+  //           case OPERATION_TYPE.TEXT:
+  //             let textPos = item.data.pos
+  //             textPos[0] = textPos[0] + diff.x
+  //             textPos[1] = textPos[1] + diff.y
+  //             item.data.pos = textPos
+  //             break
+  //           case OPERATION_TYPE.INSERT_PIC:
+  //             let pos = item.data.pos
+  //             pos[0] = pos[0] + diff.x
+  //             pos[1] = pos[1] + diff.y
+  //             item.data.pos = pos
+  //             break
+  //           default:
+  //             break
+  //         }
+  //         item.pos = relocate(item.pos, diff)
+  //       }
+  //     })
+  //     return item
+  //   })
+  //   return resultItems
+  // }
+
+  addOperationItem = (item) => {
+    const { operationList } = this.state
+    let newItem = Map({
+      id: v4(),
+      timestamp: Date.now()
+    }).merge(Map(item))
+    this.setState({
+      remoteType: REMOTE_OPERATION.INCREMENT,
+      operationList: operationList.push(newItem)
     })
   }
 
-  fetchRoomList() {
-      axios.get(`${serverUrl}/getRooms/`).then(res => {
-          if (res.status === 200) {
-              this.setState({
-                  roomList: fromJS(res.data)
-              })
-          }
-      }, error => {
-        console.log('服务器挂了，本地调试', error)
-        this.setState({
-          route: '/room'
-        })
-      })
-  }
-
-  renderRoomList() {
-    const columns = [{
-      title: 'ID',
-      dataIndex: '_id',
-      key: '_id',
-    }, {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-    }]
-
-    return (
-      <div className={styles.roomListContainer}>
-        <h2>Room List</h2>
-        <Table
-          rowKey="_id"
-          pagination={false}
-          columns={columns}
-          dataSource={this.state.roomList.toJS()}
-          onRowClick={this.handleEnterRoom.bind(this)}
-        >
-        </Table>
-        <Button
-          size="large"
-          type="primary"
-          onClick={this.handleCreateRoom.bind(this)}
-        >
-          Create room
-        </Button>
-      </div>
-    )
-  }
-
-  renderRoom() {
-    const { selectedRoom, username } = this.state;
-    const RoomWithLicode = connectToLicode(Room, username);
-    return (
-      <div className={styles.roomPanel}>
-        <RoomWithLicode roomId={selectedRoom}/>
-      </div>
-    )
-  }
-
   render() {
-    let content
-
-    switch (this.state.route) {
-      case '/roomList':
-        content = this.renderRoomList()
-        break
-      case '/room':
-        content = this.renderRoom()
-        break
-      default:
-        break
-    }
+    const { operationList, remoteType } = this.state
 
     return (
       <div className={styles.App}>
-        {content}
+        <div className={styles.header}>
+          你画我猜
+        </div>
+        <div className={styles.container}>
+          <WhiteBoard
+            items={operationList.toJS()}
+            undo={this.props.undo}
+            redo={this.props.redo}
+            onCleanAll={this.props.cleanAll}
+            remoteType={remoteType}
+            onCompleteItem={(i) => this.addOperationItem(i)}
+          />
+        </div>
+        <div className={styles.footer}>
+          你画我猜
+        </div>
       </div>
     )
   }

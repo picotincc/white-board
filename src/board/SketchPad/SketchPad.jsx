@@ -4,7 +4,7 @@ import { v4 } from 'uuid'
 import { findDOMNode } from 'react-dom'
 import classNames from 'classnames'
 import { Pencil, TOOL_PENCIL, Line, TOOL_LINE, Ellipse, TOOL_ELLIPSE, Rectangle, TOOL_RECTANGLE } from '../tools'
-import { REMOTE_OPERATION, OPERATION_TYPE } from './ConstantUtil'
+import { REMOTE_OPERATION, OPERATION_TYPE } from '../ConstantUtil'
 import styles from './SketchPad.scss'
 import { fromJS } from 'immutable'
 

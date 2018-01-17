@@ -1,20 +1,23 @@
 :local(.App) {
   text-align: center;
   padding: 20px;
+  width: 100%;
+  height: 100%;
+  background-color: #bd10e0;
+  
+  :local(.header) {
+    height: 20%;
+  }
 
-  :local(.roomListContainer) {
+  :local(.container) {
+    height: 70%;
+
     display: flex;
-    flex-direction: column;
-    align-items: center;
     justify-content: center;
+    align-items: center;
+  }
 
-    .ant-table-wrapper {
-      margin-top: 5px;
-      width: 80%;
-    }
-
-    .ant-btn {
-      margin-top: 10px;
-    }
+  :local(.footer) {
+    height: 10%;
   }
 }
