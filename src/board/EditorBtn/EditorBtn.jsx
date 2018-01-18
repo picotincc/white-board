@@ -1,6 +1,7 @@
 import React from 'react'
 import styles from './EditorBtn.scss'
 import classNames from 'classnames'
+import { Icon } from 'antd'
 import { PenIcon, SelectIcon, StrokeIcon, ShapeIcon, ColorIcon, TextIcon, RubberIcon, ImportIcon, UndoIcon, RedoIcon, AmplificationIcon, SaveIcon, LockedIcon, UnlockIcon } from '../svg'
 
 const IconMap = {
@@ -18,18 +19,11 @@ const IconMap = {
   'amp': <AmplificationIcon />,
   'save': <SaveIcon />,
   'locked': <LockedIcon />,
-  'unlock': <UnlockIcon />
+  'unlock': <UnlockIcon />,
+  'eye': <Icon type="eye-o" style={{ fontSize: '24px', color: '#926dea' }}/>
 }
 
 class EditorBtn extends React.Component {
-
-  state = {
-
-  }
-
-  componentDidMount() {
-
-  }
 
   render() {
     const { type, text, arrow, onClick, selected, color } = this.props

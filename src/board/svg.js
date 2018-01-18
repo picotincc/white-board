@@ -1,6 +1,6 @@
 import React from 'react'
 
-export const AuthenticatedIcon = (props) => (
+export const AuthIcon = (props) => (
   <svg x="0px" y="0px" viewBox="0 0 24 24" style={{enableBackground: 'new 0 0 24 24'}} {...props}>
     <g>
       <g transform="translate(-752.000000, -239.000000)">

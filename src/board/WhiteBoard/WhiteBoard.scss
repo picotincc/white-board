@@ -1,14 +1,15 @@
 :local(.whiteBoard) {
-  width: 986px;
-  height: 616px;
+  width: 100%;
+  height: 100%;
   background: #ffffff;
 
   :local(.editorBar) {
-    width: 985px;
+    width: 100%;
     height: 54px;
     background-color: #ffffff;
     box-shadow: -3px 0 13px 0 rgba(0, 0, 0, 0.08);
     padding: 0 60px;
+    justify-content: center;
 
     display: flex;
     z-index: 5;
@@ -28,10 +29,15 @@
 }
 
 :local(.customMenu) {
+
   :local(.menuItem) {
     display: flex;
     width: 56px;
     align-items: center;
+
+    :local(.clearAllBtn) {
+      display: flex;
+    }
 
     :local(.itemIcon) {
       width: 18px;

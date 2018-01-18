@@ -1,7 +1,7 @@
 :local(.sketchPad) {
   position: relative;
-  width: 986px;
-  height: 562px;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
 
   :local(.canvas) {
@@ -34,20 +34,13 @@
     }
   }
 
-  :local(.canvasTextArea)
-  {
+  :local(.canvasTextArea) {
     position: absolute;
     display: none;
     width: 200px;
     height: 100px;
     z-index: 10;
   }
-
-  :local(.textareaShow) {
-
-  }
-
-
 }
 
 @keyframes dash {

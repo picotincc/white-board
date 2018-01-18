@@ -1,12 +1,12 @@
 import React from 'react'
-import { Dropdown, Menu, Slider } from 'antd'
+import { Dropdown, Menu, Slider, Popconfirm } from 'antd'
 
 import { TOOL_LINE, TOOL_PENCIL, TOOL_RECTANGLE, TOOL_ELLIPSE } from '../tools'
 import { fromJS } from 'immutable'
 import styles from './WhiteBoard.scss'
 import SketchPad from '../SketchPad'
 import EditorBtn from '../EditorBtn'
-import { PenIcon, RubberIcon, ClearIcon, AuthenticatedIcon, StrokeIcon } from '../svg'
+import { PenIcon, RubberIcon, ClearIcon, AuthIcon, StrokeIcon } from '../svg'
 import { OPERATION_TYPE } from '../ConstantUtil'
 
 const colorsMenu = [
@@ -20,7 +20,6 @@ const colorsMenu = [
   { name: 'white', color: '#ffffff' },
 ]
 
-
 class WhiteBoard extends React.Component {
 
   state = {
@@ -30,16 +29,22 @@ class WhiteBoard extends React.Component {
     operation: OPERATION_TYPE.DRAW_LINE,
     tool: TOOL_PENCIL,
     lineType: 'stroke',
-    size: 3,
+    size: 3
   }
 
   componentDidMount() {
 
   }
 
+  handleSendMessage(item) {
+    const { scale } = this.state
+    const msg = this.restoreItem(item, scale)
+    this.props.sendMessage(msg)
+  }
+
   handleSaveCanvasToImage() {
     const canvas = this.sketchPad.canvas
-    const img = canvas.toDataURL("image/png")
+    const img = canvas.toDataURL('image/png')
     const a = document.createElement('a')
     a.href = img
     a.download = 'download-whiteboard.png'
@@ -48,71 +53,89 @@ class WhiteBoard extends React.Component {
 
   handleUndo() {
     console.log('undo')
-    this.props.undo({ op: OPERATION_TYPE.UNDO })
+    this.props.sendMessage({ op: OPERATION_TYPE.UNDO })
   }
 
   handleRedo() {
     console.log('redo')
-    this.props.redo({ op: OPERATION_TYPE.REDO })
+    this.props.sendMessage({ op: OPERATION_TYPE.REDO })
   }
 
+  handleCleanAll() {
+    console.log('clean all')
+    this.props.sendMessage({ op: OPERATION_TYPE.CLEAR_ALL })
+  }
+
+  // 根据 scale 放大操作数据
   scaleItems(items) {
     const { scale } = this.state
-    const newItems = fromJS(items).map(item => {
-      switch (item.get('op')) {
-        case OPERATION_TYPE.DRAW_LINE:
-
-          if (item.getIn(['data', 'tool']) === TOOL_PENCIL) {
-            item = item.updateIn(['data', 'points'], points => points.map(p => {
-              p = p.update('x', x => x * scale)
-                    .update('y', y => y * scale)
-              return p
-            })).updateIn(['data', 'size'], size => size * scale)
-          } else {
-            item = item.updateIn(['data', 'start', 'x'], x => x * scale)
-                      .updateIn(['data', 'start', 'y'], y => y * scale)
-                      .updateIn(['data', 'end', 'x'], x => x * scale)
-                      .updateIn(['data', 'end', 'y'], y => y * scale)
-                      .updateIn(['data', 'size'], size => size * scale)
-          }
-          break
-        case OPERATION_TYPE.CLEAR:
-          item = item.updateIn(['data', 'points'], points => points.map(p => {
-            p = p.update('x', x => x * scale)
-                  .update('y', y => y * scale)
-            return p
-          })).updateIn(['data', 'size'], size => size * scale)
-
-          break
-        case OPERATION_TYPE.DRAW_SHAPE:
-          item = item.updateIn(['data', 'start', 'x'], x => x * scale)
-                    .updateIn(['data', 'start', 'y'], y => y * scale)
-                    .updateIn(['data', 'end', 'x'], x => x * scale)
-                    .updateIn(['data', 'end', 'y'], y => y * scale)
-                    .updateIn(['data', 'size'], size => size * scale)
-          break
-        case OPERATION_TYPE.TEXT:
-          item = item.updateIn(['data', 'pos'], pos => pos.map(p => p * scale))
-          break
-        case OPERATION_TYPE.INSERT_PIC:
-          item = item.updateIn(['data', 'pos'], pos => pos.map(p => p * scale))
-                    .updateIn(['data', 'info'], info => info.map(i => i * scale))
-          break
-        default:
-          break
-      }
-
-      item = item.updateIn(['pos', 'x'], x => x * scale)
-                .updateIn(['pos', 'y'], y => y * scale)
-                .updateIn(['pos', 'w'], w => w * scale)
-                .updateIn(['pos', 'h'], h => h * scale)
-                .updateIn(['pos', 'center'], center => center.map(c => c * scale))
-
-      return item
+    const newItems = items.map((item) => {
+      return this.restoreItem(item, scale, true)
     })
+    return newItems
+  }
 
-    return newItems.toJS()
+  // 根据 scale 放大或缩小操作数据
+  restoreItem(data, scale, isEnlarge = false) {
+    const enlarge = (x) => x * scale
+    const reduce = (x) => x / scale
+    const scaleFn = isEnlarge ? enlarge : reduce
+    let item = fromJS(data)
 
+    switch (item.get('op')) {
+      case OPERATION_TYPE.DRAW_LINE:
+
+        if (item.getIn(['data', 'tool']) === TOOL_PENCIL) {
+          item = item.updateIn(['data', 'points'], (points) => points.map((p) => {
+            p = p.update('x', scaleFn)
+            .update('y', scaleFn)
+            return p
+          })).updateIn(['data', 'size'], scaleFn)
+        } else {
+          item = item.updateIn(['data', 'start', 'x'], scaleFn)
+          .updateIn(['data', 'start', 'y'], scaleFn)
+          .updateIn(['data', 'end', 'x'], scaleFn)
+          .updateIn(['data', 'end', 'y'], scaleFn)
+          .updateIn(['data', 'size'], scaleFn)
+        }
+        break
+      case OPERATION_TYPE.CLEAR:
+        item = item.updateIn(['data', 'points'], (points) => points.map((p) => {
+          p = p.update('x', scaleFn)
+          .update('y', scaleFn)
+          return p
+        })).updateIn(['data', 'size'], scaleFn)
+        break
+      case OPERATION_TYPE.DRAW_SHAPE:
+        item = item.updateIn(['data', 'start', 'x'], scaleFn)
+        .updateIn(['data', 'start', 'y'], scaleFn)
+        .updateIn(['data', 'end', 'x'], scaleFn)
+        .updateIn(['data', 'end', 'y'], scaleFn)
+        .updateIn(['data', 'size'], scaleFn)
+        break
+      case OPERATION_TYPE.TEXT:
+        item = item.updateIn(['data', 'pos'], (pos) => pos.map(scaleFn))
+        break
+      case OPERATION_TYPE.INSERT_PIC:
+        item = item.updateIn(['data', 'pos'], (pos) => pos.map(scaleFn))
+                  .updateIn(['data', 'info'], (info) => info.map(scaleFn))
+        break
+      case OPERATION_TYPE.MOVE:
+        item = item.updateIn(['data', 'diff'], (pos) => pos.map(scaleFn))
+        break
+      default:
+        break
+    }
+
+    if (item.get('op') !== OPERATION_TYPE.MOVE) {
+      item = item.updateIn(['data', 'position', 'x'], scaleFn)
+      .updateIn(['data', 'position', 'y'], scaleFn)
+      .updateIn(['data', 'position', 'w'], scaleFn)
+      .updateIn(['data', 'position', 'h'], scaleFn)
+      .updateIn(['data', 'position', 'center'], (center) => center.map(scaleFn))
+    }
+
+    return item.toJS()
   }
 
   renderStrokeMenu() {
@@ -171,9 +194,11 @@ class WhiteBoard extends React.Component {
         </Menu.Item>
 
         <Menu.Item>
-          <div className={styles.menuItem} onClick={() => this.props.onCleanAll()}>
-            <span className={styles.itemIcon}><ClearIcon /></span>
-            <span className={styles.itemText}>清空</span>
+          <div className={styles.menuItem}>
+            <Popconfirm placement="bottom" title="确认将目前白板画面清空" onConfirm={() => this.handleCleanAll()} okText="是" cancelText="否">
+              <span className={styles.itemIcon}><ClearIcon width={18} /></span>
+              <span className={styles.itemText} style={{ position: 'relative', top: '-4px' }}>清空</span>
+            </Popconfirm>
           </div>
         </Menu.Item>
       </Menu>
@@ -185,15 +210,15 @@ class WhiteBoard extends React.Component {
     return (
       <div className={styles.colorMenu}>
         <ol className={styles.colorOl}>
-          {colorsMenu.map((c, i)=> {
+          {colorsMenu.map((c, i) => {
             return (
               <li
                 key={i}
                 className={styles.colorLi}
-                style={{backgroundColor: c.color}}
+                style={{ backgroundColor: c.color }}
                 onClick={() => this.setState({ color: c.name, colorVisible: true, operation: OPERATION_TYPE.DRAW_LINE })}
               >
-                {color === c.name ? <AuthenticatedIcon fill={c.color === '#ffffff' ? '#979797' : '#ffffff'}/> : null}
+                {color === c.name ? <AuthIcon fill={c.color === '#ffffff' ? '#979797' : '#ffffff'}/> : null}
               </li>
             )
           })}
@@ -216,7 +241,7 @@ class WhiteBoard extends React.Component {
               this.setState({ scale: (v / 100).toFixed(2) })
             }}
             value={scale * 100}
-            tipFormatter={tip => tip + '%'}
+            tipFormatter={(tip) => tip + '%'}
           />
         </div>
         <div className={styles.text}>200%</div>
@@ -225,7 +250,7 @@ class WhiteBoard extends React.Component {
   }
 
   render() {
-    const { items, onCompleteItem, remoteType } = this.props
+    const { items, remoteType, containerWidth, containerHeight } = this.props
     const {
       color,
       colorVisible,
@@ -234,7 +259,6 @@ class WhiteBoard extends React.Component {
       lineType,
       size,
       scale,
-      cursor
     } = this.state
 
     return (
@@ -258,7 +282,7 @@ class WhiteBoard extends React.Component {
               visible={colorVisible}
               onVisibleChange={(flag) => this.setState({ colorVisible: flag })}
             >
-              <div><EditorBtn type="color" text="颜色" arrow color={colorsMenu.find(c => c.name === color).color}/></div>
+              <div><EditorBtn type="color" text="颜色" arrow color={colorsMenu.find((c) => c.name === color).color}/></div>
             </Dropdown>
 
 
@@ -278,10 +302,11 @@ class WhiteBoard extends React.Component {
               <div><EditorBtn type="amp" text={(scale * 100).toFixed(0) + '%'} arrow /></div>
             </Dropdown>
 
-            <EditorBtn type="amp" text="抓取" selected={operation === OPERATION_TYPE.DRAG} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAG })} />
+            <EditorBtn type="eye" text="查看" selected={operation === OPERATION_TYPE.DRAG} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAG })} />
 
             <EditorBtn type="save" text="保存" onClick={this.handleSaveCanvasToImage.bind(this)}/>
           </div>
+
           <div className={styles.right}>
             <EditorBtn type="locked" text="已锁" />
           </div>
@@ -290,17 +315,16 @@ class WhiteBoard extends React.Component {
         <SketchPad
           ref={(sketchPad) => this.sketchPad = sketchPad}
           items={this.scaleItems(items)}
-          width={986}
-          height={562}
+          width={containerWidth}
+          height={containerHeight - 54}
           tool={tool}
           size={size}
           scale={scale}
-          cursor={cursor}
           remoteType={remoteType}
-          color={colorsMenu.find(c => c.name === color).color}
+          color={colorsMenu.find((c) => c.name === color).color}
           operation={operation}
           canvasClassName="user-paper"
-          onCompleteItem={onCompleteItem}
+          onCompleteItem={this.handleSendMessage.bind(this)}
         />
       </div>
     )

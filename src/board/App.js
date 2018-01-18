@@ -2,9 +2,10 @@ import React from 'react'
 import { v4 } from 'uuid'
 import {
   List,
-  Map
+  fromJS
 } from 'immutable'
 
+import { TOOL_PENCIL } from './tools'
 import styles from './App.scss'
 import WhiteBoard from './WhiteBoard'
 import { OPERATION_TYPE, REMOTE_OPERATION } from './ConstantUtil'
@@ -12,104 +13,128 @@ import { OPERATION_TYPE, REMOTE_OPERATION } from './ConstantUtil'
 class App extends React.Component {
 
   state = {
-    operationList: List([]),
-    remoteType: REMOTE_OPERATION.INCREMENT
+    containerWidth: 986,
+    containerHeight: 562,
+    remoteType: REMOTE_OPERATION.INCREMENT,
+    operationList: List([]), // 操作数组
+    undoHistory: List([]), // 属于当前用户的 undo 的历史操作
   }
 
   componentDidMount() {
-    
+    const container = this.container
+
+    if (container) {
+      this.setState({
+        containerWidth: container.offsetWidth,
+        containerHeight: container.offsetHeight
+      })
+    }
   }
 
-  // mergeOperationList(operationList) {
-  //   const data = dataMap.toJS()
-  //   let relocate = (pos, diff) => {
-  //     pos.x = pos.x + diff.x
-  //     pos.y = pos.y + diff.y
-  //     const center = pos.center
-  //     pos.center = [center[0] + diff.x, center[1] + diff.y]
-  //     return pos
-  //   }
+  insertBoardOperation = (message, isLocal = false) => {
+    const op = message.op
+    let remoteType = REMOTE_OPERATION.DECREMENT
+    const { operationList, undoHistory } = this.state
 
-  //   let normalItems = operationList.filter(item => item.get('op') !== OPERATION_TYPE.MOVE)
-  //   let moveItems = operationList.filter(item => item.get('op') === OPERATION_TYPE.MOVE)
+    let oItem = null
+    let newUndoHistory = List([])
+    let newOperationList = null
 
-  //   normalItems = normalItems.sort((a, b) => a.get('timestamp') - b.get('timestamp'))
-  //   const resultItems = fromJS(normalItems).toJS().map(item => {
-  //     moveItems.forEach(m => {
-  //       if (m.data.ops.indexOf(item.id) !== -1) {
-  //         const diff = m.data.diff
-  //         switch (item.op) {
-  //           case OPERATION_TYPE.DRAW_LINE:
-  //             if (item.data.tool === TOOL_PENCIL) {
-  //               item.data.points = item.data.points.map(point => {
-  //                 point.x = point.x + diff.x
-  //                 point.y = point.y + diff.y
-  //                 return point
-  //               })
-  //             } else {
-  //               item.data.start.x = item.data.start.x + diff.x
-  //               item.data.start.y = item.data.start.y + diff.y
-  //               item.data.end.x = item.data.end.x + diff.x
-  //               item.data.end.y = item.data.end.y + diff.y
-  //             }
-  //             break
-  //           case OPERATION_TYPE.DRAW_SHAPE:
-  //             item.data.start.x = item.data.start.x + diff.x
-  //             item.data.start.y = item.data.start.y + diff.y
-  //             item.data.end.x = item.data.end.x + diff.x
-  //             item.data.end.y = item.data.end.y + diff.y
-  //             break
-  //           case OPERATION_TYPE.TEXT:
-  //             let textPos = item.data.pos
-  //             textPos[0] = textPos[0] + diff.x
-  //             textPos[1] = textPos[1] + diff.y
-  //             item.data.pos = textPos
-  //             break
-  //           case OPERATION_TYPE.INSERT_PIC:
-  //             let pos = item.data.pos
-  //             pos[0] = pos[0] + diff.x
-  //             pos[1] = pos[1] + diff.y
-  //             item.data.pos = pos
-  //             break
-  //           default:
-  //             break
-  //         }
-  //         item.pos = relocate(item.pos, diff)
-  //       }
-  //     })
-  //     return item
-  //   })
-  //   return resultItems
-  // }
+    switch (op) {
+      case OPERATION_TYPE.UNDO:
+        oItem = operationList.last()
+        newOperationList = operationList.pop()
+        if (isLocal) {
+          newUndoHistory = undoHistory.push(oItem)
+        } else {
+          newUndoHistory = undoHistory
+        }
+        break
+      case OPERATION_TYPE.MOVE:
+        newOperationList = operationList.push(message)
+        if (!isLocal) {
+          newUndoHistory = undoHistory
+        }
+        break
+      case OPERATION_TYPE.REDO:
+        remoteType = REMOTE_OPERATION.INCREMENT
+        if (isLocal) {
+          oItem = undoHistory.last()
+          newUndoHistory = undoHistory.pop()
+        } else {
+          oItem = message
+        }
+        newOperationList = operationList.push(oItem)
+        break
+      case OPERATION_TYPE.CLEAR_ALL:
+        newOperationList = List([])
+        newUndoHistory = List({})
+        break
+      default:
+        remoteType = REMOTE_OPERATION.INCREMENT
+        newOperationList = operationList.push(message)
+        if (!isLocal) {
+          newUndoHistory = undoHistory
+        }
+        break
+    }
 
-  addOperationItem = (item) => {
-    const { operationList } = this.state
-    let newItem = Map({
-      id: v4(),
-      timestamp: Date.now()
-    }).merge(Map(item))
     this.setState({
-      remoteType: REMOTE_OPERATION.INCREMENT,
-      operationList: operationList.push(newItem)
+      remoteType,
+      operationList: newOperationList,
+      undoHistory: newUndoHistory
     })
   }
 
+  mergeOperations(operationList) {
+    const data = operationList.toJS()
+    let relocate = (pos, diff) => {
+      pos.x = pos.x + diff.x
+      pos.y = pos.y + diff.y
+      const center = pos.center
+      pos.center = [center[0] + diff.x, center[1] + diff.y]
+      return pos
+    }
+
+    let normalItems = data.filter(item => item.op !== OPERATION_TYPE.MOVE)
+    let moveItems = data.filter(item => item.op === OPERATION_TYPE.MOVE)
+
+    normalItems.sort((a, b) => a.timestamp - b.timestamp)
+    const resultItems = normalItems.map((item) => {
+      moveItems.forEach((m) => {
+        if (m.data.ops.indexOf(item.id) !== -1) {
+          item = _moveItem(item, m.data.diff)
+          item.data.position = relocate(item.data.position, m.data.diff)
+        }
+      })
+      return item
+    })
+    return resultItems
+  }
+
+  addOperationItem = (item) => {
+    let newItem = Object.assign({
+      id: v4(),
+      timestamp: Date.now()
+    }, item)
+    this.insertBoardOperation(newItem, true)
+  }
+
   render() {
-    const { operationList, remoteType } = this.state
+    const { containerWidth, containerHeight, operationList, remoteType } = this.state
 
     return (
       <div className={styles.App}>
         <div className={styles.header}>
           你画我猜
         </div>
-        <div className={styles.container}>
+        <div className={styles.container} ref={(c) => this.container = c}>
           <WhiteBoard
-            items={operationList.toJS()}
-            undo={this.props.undo}
-            redo={this.props.redo}
-            onCleanAll={this.props.cleanAll}
+            containerWidth={containerWidth}
+            containerHeight={containerHeight}
+            items={this.mergeOperations(operationList)}
             remoteType={remoteType}
-            onCompleteItem={(i) => this.addOperationItem(i)}
+            sendMessage={(i) => this.addOperationItem(i)}
           />
         </div>
         <div className={styles.footer}>
@@ -121,3 +146,39 @@ class App extends React.Component {
 }
 
 export default App
+
+const _moveItem = (item, diff) => {
+  const diffXFn = (x) => x + diff.x
+  const diffYFn = (y) => y + diff.y
+
+  item = fromJS(item)
+  switch (item.get('op')) {
+    case OPERATION_TYPE.DRAW_LINE:
+      if (item.getIn(['data', 'tool']) === TOOL_PENCIL) {
+        item = item.updateIn(['data', 'points'], (points) => points.map((p) => p.update('x', diffXFn).update('y', diffYFn)))
+      } else {
+        item = item.updateIn(['data', 'start', 'x'], diffXFn)
+                  .updateIn(['data', 'start', 'y'], diffYFn)
+                  .updateIn(['data', 'end', 'x'], diffXFn)
+                  .updateIn(['data', 'end', 'y'], diffYFn)
+      }
+      break
+    case OPERATION_TYPE.DRAW_SHAPE:
+      item = item.updateIn(['data', 'start', 'x'], diffXFn)
+                .updateIn(['data', 'start', 'y'], diffYFn)
+                .updateIn(['data', 'end', 'x'], diffXFn)
+                .updateIn(['data', 'end', 'y'], diffYFn)
+      break
+    case OPERATION_TYPE.TEXT:
+      item = item.updateIn(['data', 'pos', 0], diffXFn)
+                .updateIn(['data', 'pos', 1], diffYFn)
+      break
+    case OPERATION_TYPE.INSERT_PIC:
+      item = item.updateIn(['data', 'pos', 0], diffXFn)
+                .updateIn(['data', 'pos', 1], diffYFn)
+      break
+    default:
+      break
+  }
+  return item.toJS()
+}
