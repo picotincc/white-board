@@ -120,6 +120,22 @@ class App extends React.Component {
     this.insertBoardOperation(newItem, true)
   }
 
+  handleUndo = (message) => {
+    const { operationList } = this.state
+    if (operationList.size === 0) {
+      return
+    }
+    this.addOperationItem(message)
+  }
+
+  handleRedo = (message) => {
+    const { undoHistory } = this.state
+    if (undoHistory.size === 0) {
+      return
+    }
+    this.addOperationItem(message)
+  }
+
   render() {
     const { containerWidth, containerHeight, operationList, remoteType } = this.state
 
@@ -131,6 +147,8 @@ class App extends React.Component {
             containerHeight={containerHeight}
             items={this.mergeOperations(operationList)}
             remoteType={remoteType}
+            undo={this.handleUndo}
+            redo={this.handleRedo}
             sendMessage={(i) => this.addOperationItem(i)}
           />
         </div>

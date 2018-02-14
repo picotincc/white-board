@@ -53,12 +53,12 @@ class WhiteBoard extends React.Component {
 
   handleUndo() {
     console.log('undo')
-    this.props.sendMessage({ op: OPERATION_TYPE.UNDO })
+    this.props.undo({ op: OPERATION_TYPE.UNDO })
   }
 
   handleRedo() {
     console.log('redo')
-    this.props.sendMessage({ op: OPERATION_TYPE.REDO })
+    this.props.redo({ op: OPERATION_TYPE.REDO })
   }
 
   handleCleanAll() {
@@ -306,9 +306,6 @@ class WhiteBoard extends React.Component {
             <EditorBtn type="eye" text="查看" selected={operation === OPERATION_TYPE.DRAG} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAG })} />
 
             <EditorBtn type="save" text="保存" onClick={this.handleSaveCanvasToImage.bind(this)}/>
-          </div>
-
-          <div className={styles.right}>
           </div>
 
         </div>
