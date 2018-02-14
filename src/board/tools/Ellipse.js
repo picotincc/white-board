@@ -1,5 +1,3 @@
-import { v4 } from 'uuid';
-
 export const TOOL_ELLIPSE = 'ellipse';
 
 export default (context) => {
@@ -8,7 +6,6 @@ export default (context) => {
 
   const onMouseDown = (x, y, color, size, fill) => {
     ellipse = {
-      // id: v4(),
       tool: TOOL_ELLIPSE,
       color,
       size,
