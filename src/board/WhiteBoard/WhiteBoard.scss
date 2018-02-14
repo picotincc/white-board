@@ -24,7 +24,14 @@
       margin-right: 150px;
       display: flex;
     }
+  }
 
+  :local(.sketchPad) {
+    position: absolute;
+    top: 54px;
+    bottom: 0;
+    left: 0;
+    right: 0;
   }
 }
 

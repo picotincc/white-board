@@ -364,6 +364,7 @@ export default class SketchPad extends React.Component {
 	*/
   onDrawlineMouseDown(e) {
     const { color, size, fillColor } = this.props
+    
     this.tool.onMouseDown(...this.getCursorPosition(e), color, size, fillColor)
   }
 

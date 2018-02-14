@@ -68,7 +68,7 @@ class App extends React.Component {
         break
       case OPERATION_TYPE.CLEAR_ALL:
         newOperationList = List([])
-        newUndoHistory = List({})
+        newUndoHistory = List([])
         break
       default:
         remoteType = REMOTE_OPERATION.INCREMENT
@@ -125,10 +125,7 @@ class App extends React.Component {
 
     return (
       <div className={styles.App}>
-        <div className={styles.header}>
-          你画我猜
-        </div>
-        <div className={styles.container} ref={(c) => this.container = c}>
+        <div className="drawing-board" ref={(c) => this.container = c}>
           <WhiteBoard
             containerWidth={containerWidth}
             containerHeight={containerHeight}
@@ -136,9 +133,6 @@ class App extends React.Component {
             remoteType={remoteType}
             sendMessage={(i) => this.addOperationItem(i)}
           />
-        </div>
-        <div className={styles.footer}>
-          你画我猜
         </div>
       </div>
     )
