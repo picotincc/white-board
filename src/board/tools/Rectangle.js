@@ -1,5 +1,3 @@
-import { v4 } from 'uuid';
-
 export const TOOL_RECTANGLE = 'rectangle';
 
 export default (context) => {
@@ -8,7 +6,6 @@ export default (context) => {
 
   const onMouseDown = (x, y, color, size, fill) => {
     rectangle = {
-      // id: v4(),
       tool: TOOL_RECTANGLE,
       color,
       size,

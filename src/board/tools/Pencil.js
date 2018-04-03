@@ -18,7 +18,7 @@ export default (context) => {
     context.save();
     context.lineJoin = 'round';
     context.lineCap = 'round';
-    context.beginPath();
+    context.beginPath();    
     context.lineWidth = item.size;
     context.strokeStyle = item.color;
     context.globalCompositeOperation = 'source-over';

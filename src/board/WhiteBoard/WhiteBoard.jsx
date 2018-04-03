@@ -29,7 +29,7 @@ class WhiteBoard extends React.Component {
     operation: OPERATION_TYPE.DRAW_LINE,
     tool: TOOL_PENCIL,
     lineType: 'stroke',
-    size: 3
+    size: 5
   }
 
   componentDidMount() {
@@ -142,20 +142,20 @@ class WhiteBoard extends React.Component {
     return (
       <Menu className={styles.customMenu}>
         <Menu.Item>
-          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAW_LINE, tool: TOOL_PENCIL, lineType: 'stroke', size: 3 })}>
+          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAW_LINE, tool: TOOL_PENCIL, lineType: 'stroke', size: 5 })}>
             <span className={styles.itemIcon}><StrokeIcon /></span>
             <span className={styles.itemText}>画笔</span>
           </div>
         </Menu.Item>
         <Menu.Item>
-          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAW_LINE, tool: TOOL_PENCIL, lineType: 'pen', size: 1 })}>
+          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAW_LINE, tool: TOOL_PENCIL, lineType: 'pen', size: 2 })}>
             <span className={styles.itemIcon}><PenIcon /></span>
             <span className={styles.itemText}>钢笔</span>
           </div>
         </Menu.Item>
 
         <Menu.Item>
-          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAW_LINE, tool: TOOL_LINE, lineType: 'straight', size: 1 })}>
+          <div className={styles.menuItem} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAW_LINE, tool: TOOL_LINE, lineType: 'straight', size: 2 })}>
             <span className={styles.itemIcon}><div className={styles.straightLine} /></span>
             <span className={styles.itemText}>直线</span>
           </div>
@@ -216,7 +216,7 @@ class WhiteBoard extends React.Component {
                 key={i}
                 className={styles.colorLi}
                 style={{ backgroundColor: c.color }}
-                onClick={() => this.setState({ color: c.name, colorVisible: true, operation: OPERATION_TYPE.DRAW_LINE })}
+                onClick={() => this.setState({ color: c.name, colorVisible: true, })}
               >
                 {color === c.name ? <AuthIcon fill={c.color === '#ffffff' ? '#979797' : '#ffffff'}/> : null}
               </li>
@@ -260,7 +260,8 @@ class WhiteBoard extends React.Component {
       size,
       scale,
     } = this.state
-
+    console.log(size)
+    
     return (
       <div className={styles.whiteBoard}>
         <div className={styles.editorBar}>
@@ -307,21 +308,27 @@ class WhiteBoard extends React.Component {
             <EditorBtn type="save" text="保存" onClick={this.handleSaveCanvasToImage.bind(this)}/>
           </div>
 
+          <div className={styles.right}>
+          </div>
+
         </div>
-        <SketchPad
-          ref={(sketchPad) => this.sketchPad = sketchPad}
-          items={this.scaleItems(items)}
-          width={containerWidth}
-          height={containerHeight - 54}
-          tool={tool}
-          size={size}
-          scale={scale}
-          remoteType={remoteType}
-          color={colorsMenu.find((c) => c.name === color).color}
-          operation={operation}
-          canvasClassName="user-paper"
-          onCompleteItem={this.handleSendMessage.bind(this)}
-        />
+        <div className={styles.sketchPad}>
+          <SketchPad
+            ref={(sketchPad) => this.sketchPad = sketchPad}
+            items={this.scaleItems(items)}
+            width={containerWidth}
+            height={containerHeight - 54}
+            tool={tool}
+            size={size}
+            scale={scale}
+            remoteType={remoteType}
+            color={colorsMenu.find((c) => c.name === color).color}
+            operation={operation}
+            canvasClassName="user-paper"
+            onCompleteItem={this.handleSendMessage.bind(this)}
+          />
+        </div>
+        
       </div>
     )
   }
