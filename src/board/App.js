@@ -13,22 +13,22 @@ import { OPERATION_TYPE, REMOTE_OPERATION } from './ConstantUtil'
 class App extends React.Component {
 
   state = {
-    containerWidth: 986,
-    containerHeight: 562,
+    containerWidth: 4000,
+    containerHeight: 2500,
     remoteType: REMOTE_OPERATION.INCREMENT,
     operationList: List([]), // 操作数组
     undoHistory: List([]), // 属于当前用户的 undo 的历史操作
   }
 
   componentDidMount() {
-    const container = this.container
+    // const container = this.container
 
-    if (container) {
-      this.setState({
-        containerWidth: container.offsetWidth,
-        containerHeight: container.offsetHeight
-      })
-    }
+    // if (container) {
+    //   this.setState({
+    //     containerWidth: container.offsetWidth,
+    //     containerHeight: container.offsetHeight
+    //   })
+    // }
   }
 
   insertBoardOperation = (message, isLocal = false) => {

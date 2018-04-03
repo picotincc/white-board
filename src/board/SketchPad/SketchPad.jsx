@@ -91,7 +91,7 @@ export default class SketchPad extends React.Component {
 
   componentDidUpdate({ scale }) {
     if (this.props.scale !== scale) {
-      this.relocateCanvas(scale)
+      // this.relocateCanvas(scale)
       this._clear()
       this.renderItems(this.props.items)
     }
