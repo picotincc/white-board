@@ -4,6 +4,10 @@
   height: 100%;
   overflow: auto;
 
+  &.hidden {
+    overflow: hidden;
+  }
+
   :local(.canvas) {
     z-index: 2;
     background: transparent;

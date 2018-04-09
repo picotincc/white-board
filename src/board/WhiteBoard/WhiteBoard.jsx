@@ -42,6 +42,10 @@ class WhiteBoard extends React.Component {
     this.props.sendMessage(msg)
   }
 
+  handleUploadImage() {
+    this.sketchPad.onInsertPic()
+  }
+
   handleSaveCanvasToImage() {
     const canvas = this.sketchPad.canvas
     const img = canvas.toDataURL('image/png')
@@ -293,7 +297,7 @@ class WhiteBoard extends React.Component {
               <div><EditorBtn type="rubber" text="清除" arrow selected={operation === OPERATION_TYPE.CLEAR} /></div>
             </Dropdown>
 
-            <EditorBtn type="import" text="插入" selected={operation === OPERATION_TYPE.INSERT_PIC} onClick={() => this.setState({ operation: OPERATION_TYPE.INSERT_PIC })} />
+            <EditorBtn type="import" text="插入" selected={operation === OPERATION_TYPE.INSERT_PIC} onClick={this.handleUploadImage.bind(this)} />
           </div>
           <div className={styles.middle}>
             <EditorBtn type="undo" text="撤销" onClick={this.handleUndo.bind(this)}/>
