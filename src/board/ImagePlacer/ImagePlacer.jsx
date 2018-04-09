@@ -64,7 +64,6 @@ class ImagePlacer extends React.Component {
     const { offsetLeft, offsetTop, image } = this.props
     const { posX, posY, width } = this.state
     const height = this.image.height
-    console.log(posY, posX, width, height)
     
     this.props.place({
       top: posY + offsetTop,

@@ -264,7 +264,7 @@ class WhiteBoard extends React.Component {
       size,
       scale,
     } = this.state
-    console.log(size)
+    
     
     return (
       <div className={styles.whiteBoard}>

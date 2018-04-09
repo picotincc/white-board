@@ -561,7 +561,8 @@ export default class SketchPad extends React.Component {
   onInsertPic(e) {
     // const pos = this.getCursorPosition(e)
     const fileInput = this.fileInput
-    // fileInput.pos = pos
+    console.log('file click')
+    
     fileInput.click()
   }
 
@@ -571,8 +572,7 @@ export default class SketchPad extends React.Component {
 	*/
   onFileChange(e) {
     const file = e.target.files[0]
-    console.log(this.sketchPad.scrollLeft)
-    
+        
     const offsetLeft = this.sketchPad.scrollLeft
     const offsetTop = this.sketchPad.scrollTop
     // if(file) {
@@ -617,7 +617,6 @@ export default class SketchPad extends React.Component {
   }
 
   handlePlaceImage(place) {
-    console.log(place)
     const { uploadImage } = this.state
 
     const img = new Image()
@@ -641,6 +640,7 @@ export default class SketchPad extends React.Component {
       }, posInfo)
     }
 
+    this.fileInput.value = ''
     this.setState({
       isUploading: false,
       uploadImage: null
