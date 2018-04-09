@@ -7,6 +7,7 @@ import { Pencil, TOOL_PENCIL, Line, TOOL_LINE, Ellipse, TOOL_ELLIPSE, Rectangle,
 import { REMOTE_OPERATION, OPERATION_TYPE } from '../ConstantUtil'
 import styles from './SketchPad.scss'
 import { fromJS } from 'immutable'
+import ImagePlacer from '../ImagePlacer'
 
 export const toolsMap = {
   [TOOL_PENCIL]: Pencil,
@@ -60,6 +61,13 @@ export default class SketchPad extends React.Component {
 
   state = {
     isTexting: false,
+    isDragging: false,
+    isScrolling: false,
+    isUploading: false,
+    uploadImage: null, 
+    startDragPoint: null,
+    selectedRect: null,
+    selectedItems: []
   }
 
 
@@ -91,7 +99,7 @@ export default class SketchPad extends React.Component {
 
   componentDidUpdate({ scale }) {
     if (this.props.scale !== scale) {
-      this.relocateCanvas(scale)
+      // this.relocateCanvas(scale)
       this._clear()
       this.renderItems(this.props.items)
     }
@@ -551,9 +559,10 @@ export default class SketchPad extends React.Component {
 	* 点击隐藏的 file-input
 	*/
   onInsertPic(e) {
-    const pos = this.getCursorPosition(e)
+    // const pos = this.getCursorPosition(e)
     const fileInput = this.fileInput
-    fileInput.pos = pos
+    console.log('file click')
+    
     fileInput.click()
   }
 
@@ -563,34 +572,80 @@ export default class SketchPad extends React.Component {
 	*/
   onFileChange(e) {
     const file = e.target.files[0]
+        
+    const offsetLeft = this.sketchPad.scrollLeft
+    const offsetTop = this.sketchPad.scrollTop
+    // if(file) {
+    //   this.setState({
+    //     isUploading: true,
+    //     uploadImage: file
+    //   })
+    // }
     if (file) {
-      const pos = this.fileInput.pos
       let reader = new window.FileReader()
       reader.readAsDataURL(file)
       reader.onloadend = () => {
         let base64data = reader.result
-        const img = new Image()
-        const mid = 'img_' + v4()
-        img.src = base64data
-        this._cacheImgs[mid] = img
-        img.onload = () => {
-          this.ctx.drawImage(img, pos[0], pos[1])
-          let posInfo = {
-            x: pos[0],
-            y: pos[1],
-            w: img.width,
-            h: img.height
-          }
-          posInfo.center = [posInfo.x + (posInfo.w / 2), posInfo.y + (posInfo.h / 2)]
-          this.sendMessage(OPERATION_TYPE.INSERT_PIC, {
-            mid,
-            pos,
-            info: { w: posInfo.w, h: posInfo.h },
-            imgData: base64data
-          }, posInfo)
-        }
+        this.setState({
+          isUploading: true,
+          uploadImage: base64data,
+          offsetLeft,
+          offsetTop
+        })
+        // const img = new Image()
+        // const mid = 'img_' + v4()
+        // img.src = base64data
+        // this._cacheImgs[mid] = img
+        // img.onload = () => {
+        //   this.ctx.drawImage(img, pos[0], pos[1])
+        //   let posInfo = {
+        //     x: pos[0],
+        //     y: pos[1],
+        //     w: img.width,
+        //     h: img.height
+        //   }
+        //   posInfo.center = [posInfo.x + (posInfo.w / 2), posInfo.y + (posInfo.h / 2)]
+        //   this.sendMessage(OPERATION_TYPE.INSERT_PIC, {
+        //     mid,
+        //     pos,
+        //     info: { w: posInfo.w, h: posInfo.h },
+        //     imgData: base64data
+        //   }, posInfo)
+        // }
       }
     }
+  }
+
+  handlePlaceImage(place) {
+    const { uploadImage } = this.state
+
+    const img = new Image()
+    const mid = 'img_' + v4()
+    img.src = uploadImage
+    this._cacheImgs[mid] = img
+    img.onload = () => {
+      this.ctx.drawImage(img, place.left, place.top, place.width, place.height)
+      let posInfo = {
+        x: place.left,
+        y: place.top,
+        w: place.width,
+        h: place.height
+      }
+      posInfo.center = [posInfo.x + (posInfo.w / 2), posInfo.y + (posInfo.h / 2)]
+      this.sendMessage(OPERATION_TYPE.INSERT_PIC, {
+        mid,
+        pos: [place.left, place.top],
+        info: { w: posInfo.w, h: posInfo.h },
+        imgData: uploadImage
+      }, posInfo)
+    }
+
+    this.fileInput.value = ''
+    this.setState({
+      isUploading: false,
+      uploadImage: null
+    })
+    
   }
 
 	/**
@@ -657,7 +712,6 @@ export default class SketchPad extends React.Component {
   onDragMouseUp() {
     this.setState({ isScrolling: false, startScrollPoint: null })
   }
-
 
 	/**
 	* 获取当前鼠标落地在 canvas 上的相对位置
@@ -802,9 +856,15 @@ export default class SketchPad extends React.Component {
 
   render() {
     const { width, height, scale } = this.props
-    const { isTexting } = this.state
+    const { isTexting, isUploading, uploadImage, offsetLeft, offsetTop } = this.state
+
     return (
-      <div className={styles.sketchPad}>
+      <div className={classNames({
+        'hidden': isUploading,
+        [styles.sketchPad]: true,
+      })}
+      ref={(pad) => { this.sketchPad = pad }}
+      >
         <div ref={(b) => this.canvasBg = b} className={styles.canvasBackground} style={{ width: (width * scale) + 'px', height: (height * scale) + 'px' }}>
           <svg
             ref={(d) => this.rect = d}
@@ -843,7 +903,15 @@ export default class SketchPad extends React.Component {
           onChange={this.onFileChange.bind(this)}
         />
 
-
+        {isUploading ? 
+          <ImagePlacer
+            offsetLeft={offsetLeft}
+            offsetTop={offsetTop}
+            image={uploadImage}
+            place={this.handlePlaceImage.bind(this)}
+            cancel={() => this.setState({ isUploading: false })}
+          /> : null  
+        }
       </div>
     )
   }
