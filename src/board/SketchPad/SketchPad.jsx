@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { v4 } from 'uuid'
 import { findDOMNode } from 'react-dom'
 import classNames from 'classnames'
+import { message } from 'antd'
 import { Pencil, TOOL_PENCIL, Line, TOOL_LINE, Ellipse, TOOL_ELLIPSE, Rectangle, TOOL_RECTANGLE } from '../tools'
 import { REMOTE_OPERATION, OPERATION_TYPE } from '../ConstantUtil'
 import styles from './SketchPad.scss'
@@ -826,14 +827,14 @@ export default class SketchPad extends React.Component {
   handleDropImage(e) {
 
     e.preventDefault()
-  
+    const offsetLeft = this.sketchPad.scrollLeft
+    const offsetTop = this.sketchPad.scrollTop
     var files = e.dataTransfer ? e.dataTransfer.files : [] // 文件对象
     if (files.length > 0) {
       let file = files[0]
-              
-      const offsetLeft = this.sketchPad.scrollLeft
-      const offsetTop = this.sketchPad.scrollTop
-      if (file) {
+      let type = file.type
+
+      if (type.includes('image')) {
         let reader = new window.FileReader()
         reader.readAsDataURL(file)
         reader.onloadend = () => {
@@ -845,9 +846,10 @@ export default class SketchPad extends React.Component {
             offsetTop
           })
         }
+      } else {
+        message.warning('只支持图片类型文件')
       }
     }
-    
   }
 
   handleDragOverImage(e) {
