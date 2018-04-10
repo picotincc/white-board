@@ -575,12 +575,6 @@ export default class SketchPad extends React.Component {
         
     const offsetLeft = this.sketchPad.scrollLeft
     const offsetTop = this.sketchPad.scrollTop
-    // if(file) {
-    //   this.setState({
-    //     isUploading: true,
-    //     uploadImage: file
-    //   })
-    // }
     if (file) {
       let reader = new window.FileReader()
       reader.readAsDataURL(file)
@@ -592,26 +586,6 @@ export default class SketchPad extends React.Component {
           offsetLeft,
           offsetTop
         })
-        // const img = new Image()
-        // const mid = 'img_' + v4()
-        // img.src = base64data
-        // this._cacheImgs[mid] = img
-        // img.onload = () => {
-        //   this.ctx.drawImage(img, pos[0], pos[1])
-        //   let posInfo = {
-        //     x: pos[0],
-        //     y: pos[1],
-        //     w: img.width,
-        //     h: img.height
-        //   }
-        //   posInfo.center = [posInfo.x + (posInfo.w / 2), posInfo.y + (posInfo.h / 2)]
-        //   this.sendMessage(OPERATION_TYPE.INSERT_PIC, {
-        //     mid,
-        //     pos,
-        //     info: { w: posInfo.w, h: posInfo.h },
-        //     imgData: base64data
-        //   }, posInfo)
-        // }
       }
     }
   }
@@ -849,6 +823,42 @@ export default class SketchPad extends React.Component {
     return false
   }
 
+  handleDropImage(e) {
+
+    e.preventDefault()
+  
+    var files = e.dataTransfer ? e.dataTransfer.files : [] // 文件对象
+    if (files.length > 0) {
+      let file = files[0]
+              
+      const offsetLeft = this.sketchPad.scrollLeft
+      const offsetTop = this.sketchPad.scrollTop
+      if (file) {
+        let reader = new window.FileReader()
+        reader.readAsDataURL(file)
+        reader.onloadend = () => {
+          let base64data = reader.result
+          this.setState({
+            isUploading: true,
+            uploadImage: base64data,
+            offsetLeft,
+            offsetTop
+          })
+        }
+      }
+    }
+    
+  }
+
+  handleDragOverImage(e) {
+    e.stopPropagation()
+    e.preventDefault()
+  }
+
+  handleDragLeaveImage(e) {
+    e.preventDefault()
+  }
+
   _clear() {
     const { width, height, scale } = this.props
     this.ctx.clearRect(0, 0, width * scale, height * scale)
@@ -863,6 +873,9 @@ export default class SketchPad extends React.Component {
         'hidden': isUploading,
         [styles.sketchPad]: true,
       })}
+      onDragOver={this.handleDragOverImage}
+      onDragLeave={this.handleDragLeaveImage}
+      onDrop={this.handleDropImage.bind(this)}
       ref={(pad) => { this.sketchPad = pad }}
       >
         <div ref={(b) => this.canvasBg = b} className={styles.canvasBackground} style={{ width: (width * scale) + 'px', height: (height * scale) + 'px' }}>
@@ -881,6 +894,7 @@ export default class SketchPad extends React.Component {
           onMouseMove={this.onMouseMove}
           onMouseOut={this.onMouseOut}
           onMouseUp={this.onMouseUp}
+          
           width={width * scale}
           height={height * scale}
         />
