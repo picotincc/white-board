@@ -100,5 +100,5 @@
   "eslintConfig": {
     "extends": "react-app"
   },
-  "homepage" : "http://maybeShuo.github.io/white-board"
+  "homepage": "http://maybeShuo.github.io/white-board"
 }
