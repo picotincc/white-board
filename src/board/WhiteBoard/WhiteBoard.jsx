@@ -307,7 +307,7 @@ class WhiteBoard extends React.Component {
               <div><EditorBtn type="amp" text={(scale * 100).toFixed(0) + '%'} arrow /></div>
             </Dropdown>
 
-            <EditorBtn type="eye" text="查看" selected={operation === OPERATION_TYPE.DRAG} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAG })} />
+            {/* <EditorBtn type="eye" text="查看" selected={operation === OPERATION_TYPE.DRAG} onClick={() => this.setState({ operation: OPERATION_TYPE.DRAG })} /> */}
 
             <EditorBtn type="save" text="保存" onClick={this.handleSaveCanvasToImage.bind(this)}/>
           </div>
