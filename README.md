@@ -1,6 +1,9 @@
 # white-board
 canvas 实现绘图画板
 
+DEMO地址：
+  - https://maybeshuo.github.io/white-board/
+
 参考网站
   - https://witeboard.com/
   - https://awwapp.com/
